@@ -24,12 +24,16 @@ public class FastPack
 		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc").withRequiredArg().ofType(String.class).required();
 		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge").withRequiredArg().ofType(String.class).required();
 		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out").withRequiredArg().ofType(String.class).required();
+		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
+		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name").withRequiredArg().ofType(String.class).defaultsTo("FastPack");
+		ArgumentAcceptingOptionSpec<String> serverIdSpec = optParser.accepts("id").withRequiredArg().ofType(String.class);
 		final OptionSet options = optParser.parse(args);
 
 		ServerDefinition definition = new ServerDefinition();
 		ServerList entry = new ServerList();
-		entry.setName("FastPack Instance");
-		entry.setServerId("FastPack");
+		entry.setName(serverNameSpec.value(options));
+		entry.setServerId(serverIdSpec.value(options));
+		entry.setAddress(serverAddrSpec.value(options));
 		entry.setMainClass("net.minecraft.launchwrapper.Launch");
 		entry.setNewsUrl("about:blank");
 		entry.setVersion(MCVersionSpec.value(options));
@@ -54,7 +58,13 @@ public class FastPack
 			fileWriter.newLine();
 			fileWriter.write("<ServerPack version=\"" + Version.API_VERSION + "\" xmlns=\"http://www.mcupdater.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.mcupdater.com http://files.mcupdater.com/ServerPackv2.xsd\">");
 			fileWriter.newLine();
-			fileWriter.write("\t<Server id=\"" + definition.getServerEntry().getServerId() + "\" name=\"" + definition.getServerEntry().getName() + "\" newsUrl=\"" + definition.getServerEntry().getNewsUrl() + "\" version=\"" + definition.getServerEntry().getVersion() + "\" mainClass=\"" + definition.getServerEntry().getMainClass() + "\">");
+			fileWriter.write("\t<Server id=\"" + definition.getServerEntry().getServerId() +
+					"\" name=\"" + definition.getServerEntry().getName() +
+					"\" newsUrl=\"" + definition.getServerEntry().getNewsUrl() +
+					"\" version=\"" + definition.getServerEntry().getVersion() +
+					"\" mainClass=\"" + definition.getServerEntry().getMainClass() +
+					(definition.getServerEntry().getAddress().isEmpty() ? "" : ("\" serverAddress=\"" + xmlEscape(definition.getServerEntry().getAddress()))) +
+					"\">");
 			fileWriter.newLine();
 			for (Import importEntry : definition.getImports()) {
 				fileWriter.write("\t\t<Import" + (importEntry.getUrl().isEmpty() ? ">" : (" url=\"" + xmlEscape(importEntry.getUrl())) + "\">") + importEntry.getServerId() + "</Import>");

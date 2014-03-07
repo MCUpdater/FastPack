@@ -40,7 +40,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		String md5 = DigestUtils.md5Hex(is);
 		String name = file.getFileName().toString();
 		String id;
-		int order = 0;
+		int order = -1;
 		name = name.substring(0,name.lastIndexOf("."));
 		id = name.replace(" ", "");
 		String depends = "";
@@ -49,7 +49,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		HashMap<String,String> mapMeta = new HashMap<>();
 		//System.out.println(relativePath.toString());
 		if (relativePath.toString().contains(".DS_Store")) { return FileVisitResult.CONTINUE; }
-		if (relativePath.toString().indexOf(sep) >= 0) {
+		if (relativePath.toString().contains(sep)) {
 			switch (relativePath.toString().substring(0, relativePath.toString().indexOf(sep))) {
 				case "bin":
 				case "resources":
