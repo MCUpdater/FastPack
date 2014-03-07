@@ -15,6 +15,7 @@ public class MCModInfo
 	public String updateUrl = "";
 	public String version = "";
 	public List<String> authors = new ArrayList<>();
+	public List<String> authorList = new ArrayList<>();
 	public String credits = "";
 	public String parent = "";
 }

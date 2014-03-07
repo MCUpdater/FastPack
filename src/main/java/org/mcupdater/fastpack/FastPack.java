@@ -45,6 +45,7 @@ public class FastPack
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		definition.sortMods();
 		definition.assignConfigs();
 
 		try {

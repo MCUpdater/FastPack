@@ -1,11 +1,11 @@
 package org.mcupdater.fastpack;
 
-import org.mcupdater.model.ConfigFile;
-import org.mcupdater.model.Import;
-import org.mcupdater.model.Module;
-import org.mcupdater.model.ServerList;
+import org.apache.commons.lang3.StringUtils;
+import org.mcupdater.model.*;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ServerDefinition
@@ -47,10 +47,27 @@ public class ServerDefinition
 	}
 
 	public void assignConfigs() {
-		this.modules.get(0).setConfigs(tempConfigs);
+		//this.modules.get(0).setConfigs(tempConfigs);
+		for (ConfigFile config : tempConfigs) {
+			Module tempModule = null;
+			int distance = 10000;
+			for (Module mod : modules) {
+				int newDistance = StringUtils.getLevenshteinDistance(config.getPath().substring(config.getPath().indexOf(File.separator)), mod.getId());
+				if (newDistance < distance) {
+					tempModule = mod;
+					distance = newDistance;
+				}
+				System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance +") / " + mod.getName() + " (" + newDistance + ")");
+			}
+			modules.get(modules.indexOf(tempModule)).getConfigs().add(config);
+		}
 	}
 
 	public List<Module> getModules() {
 		return modules;
+	}
+
+	public void sortMods() {
+		Collections.sort(modules, new ModuleComparator());
 	}
 }

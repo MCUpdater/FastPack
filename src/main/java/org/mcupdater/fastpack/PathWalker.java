@@ -119,8 +119,14 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				}
 				id = info.modId;
 				name = info.name;
+				String authors;
+				if (info.authors.size() > 0) {
+					authors = info.authors.toString();
+				} else {
+					authors = info.authorList.toString();
+				}
 				mapMeta.put("version", info.version);
-				mapMeta.put("authors", info.authors.toString().substring(1,info.authors.toString().length()-1));
+				mapMeta.put("authors", authors.substring(1,authors.length()-1));
 				mapMeta.put("description", info.description);
 				mapMeta.put("credits", info.credits);
 				mapMeta.put("url", info.url);
