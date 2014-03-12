@@ -43,6 +43,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		int order = -1;
 		name = name.substring(0,name.lastIndexOf("."));
 		id = name.replace(" ", "");
+		id = id.replaceAll("\\d","").replaceAll("[^a-zA-Z]*$","");
 		String depends = "";
 		Boolean required = true;
 		ModType modType = ModType.Regular;
@@ -118,6 +119,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					}
 				}
 				id = info.modId;
+				if (id.startsWith("mod_")) { id = id.substring(4); }
 				name = info.name;
 				String authors;
 				if (info.authors.size() > 0) {

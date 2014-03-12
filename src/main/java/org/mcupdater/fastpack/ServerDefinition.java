@@ -1,9 +1,9 @@
 package org.mcupdater.fastpack;
 
+import org.apache.commons.codec.language.Soundex;
 import org.apache.commons.lang3.StringUtils;
 import org.mcupdater.model.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,17 +48,26 @@ public class ServerDefinition
 
 	public void assignConfigs() {
 		//this.modules.get(0).setConfigs(tempConfigs);
+		Soundex snd = new Soundex();
+		int distance;
 		for (ConfigFile config : tempConfigs) {
+			//System.out.println(config.getPath() + " - " + snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))));
 			Module tempModule = null;
-			int distance = 10000;
+			distance = 10000;
 			for (Module mod : modules) {
-				int newDistance = StringUtils.getLevenshteinDistance(config.getPath().substring(config.getPath().indexOf(File.separator)), mod.getId());
+				int newDistance = StringUtils.getLevenshteinDistance(config.getPath().substring(config.getPath().indexOf("/")), mod.getId());
+				if (snd.soundex(mod.getId()).equals(snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))))) {
+					newDistance -= 10;
+				} else if (snd.soundex(mod.getName()).equals(snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))))) {
+					newDistance -= 10;
+				}
+				//System.out.println(" >" + mod.getId() + " - " + snd.soundex(mod.getId()));
 				if (newDistance < distance) {
 					tempModule = mod;
 					distance = newDistance;
 				}
-				System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance +") / " + mod.getName() + " (" + newDistance + ")");
 			}
+			System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance +")");
 			modules.get(modules.indexOf(tempModule)).getConfigs().add(config);
 		}
 	}
