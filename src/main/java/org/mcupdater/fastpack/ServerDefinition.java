@@ -4,9 +4,7 @@ import org.apache.commons.codec.language.Soundex;
 import org.apache.commons.lang3.StringUtils;
 import org.mcupdater.model.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ServerDefinition
 {
@@ -54,11 +52,12 @@ public class ServerDefinition
 			//System.out.println(config.getPath() + " - " + snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))));
 			Module tempModule = null;
 			distance = 10000;
+			String configName = config.getPath().substring(config.getPath().indexOf("/"), config.getPath().lastIndexOf("."));
 			for (Module mod : modules) {
-				int newDistance = StringUtils.getLevenshteinDistance(config.getPath().substring(config.getPath().indexOf("/")), mod.getId());
-				if (snd.soundex(mod.getId()).equals(snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))))) {
+				int newDistance = StringUtils.getLevenshteinDistance(configName, mod.getId());
+				if (snd.soundex(mod.getId()).equals(snd.soundex(configName))) {
 					newDistance -= 10;
-				} else if (snd.soundex(mod.getName()).equals(snd.soundex(config.getPath().substring(config.getPath().indexOf("/"))))) {
+				} else if (snd.soundex(mod.getName()).equals(snd.soundex(configName))) {
 					newDistance -= 10;
 				}
 				//System.out.println(" >" + mod.getId() + " - " + snd.soundex(mod.getId()));

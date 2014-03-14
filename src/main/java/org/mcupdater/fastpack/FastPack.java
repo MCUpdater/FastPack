@@ -13,10 +13,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class FastPack
 {
+	public static Map<String,String> modExceptions = new HashMap<>();
+
 	public static void main(final String[] args) {
 		OptionParser optParser = new OptionParser();
 		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path").withRequiredArg().ofType(String.class).required();
@@ -28,6 +32,8 @@ public class FastPack
 		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name").withRequiredArg().ofType(String.class).defaultsTo("FastPack");
 		ArgumentAcceptingOptionSpec<String> serverIdSpec = optParser.accepts("id").withRequiredArg().ofType(String.class);
 		final OptionSet options = optParser.parse(args);
+
+		initExceptions();
 
 		ServerDefinition definition = new ServerDefinition();
 		ServerList entry = new ServerList();
@@ -160,6 +166,11 @@ public class FastPack
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void initExceptions() {
+		modExceptions.put("NotEnoughItems","NEI");
+		modExceptions.put("AWWayofTime","BloodMagic");
 	}
 
 	private static String xmlEscape(String input) {
