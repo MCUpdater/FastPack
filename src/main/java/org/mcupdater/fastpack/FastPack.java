@@ -3,7 +3,7 @@ package org.mcupdater.fastpack;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.mcupdater.Version;
+import org.mcupdater.api.Version;
 import org.mcupdater.model.*;
 
 import java.io.BufferedWriter;
