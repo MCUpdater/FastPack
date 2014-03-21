@@ -1,6 +1,7 @@
 package org.mcupdater.fastpack;
 
 import joptsimple.ArgumentAcceptingOptionSpec;
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.mcupdater.api.Version;
@@ -23,15 +24,31 @@ public class FastPack
 
 	public static void main(final String[] args) {
 		OptionParser optParser = new OptionParser();
-		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path").withRequiredArg().ofType(String.class).required();
-		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL").withRequiredArg().ofType(String.class).required();
-		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc").withRequiredArg().ofType(String.class).required();
-		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge").withRequiredArg().ofType(String.class).required();
-		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out").withRequiredArg().ofType(String.class).required();
-		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
-		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name").withRequiredArg().ofType(String.class).defaultsTo("FastPack");
-		ArgumentAcceptingOptionSpec<String> serverIdSpec = optParser.accepts("id").withRequiredArg().ofType(String.class);
+        optParser.accepts("help","Shows this help").isForHelp();
+        optParser.formatHelpWith(new BuiltinHelpFormatter(200,3));
+		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path","Path to scan for mods and configs").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL","Base URL for downloads").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc","Minecraft version").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge","Forge version").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out","XML file to write").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver","Server address").withRequiredArg().ofType(String.class).defaultsTo("");
+		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name","Server name").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
+		ArgumentAcceptingOptionSpec<String> serverIdSpec = optParser.accepts("id","Server ID").withRequiredArg().ofType(String.class).defaultsTo("fastpack");
+        ArgumentAcceptingOptionSpec<String> mainClassSpec = optParser.accepts("mainClass","Main class for launching Minecraft").withRequiredArg().ofType(String.class).defaultsTo("net.minecraft.launchwrapper.Launch");
+        ArgumentAcceptingOptionSpec<String> newsURLSpec = optParser.accepts("newsURL","URL to display in the News tab").withRequiredArg().ofType(String.class).defaultsTo("about:blank");
+        ArgumentAcceptingOptionSpec<String> iconURLSpec = optParser.accepts("iconURL","URL of icon to display in instance list").withRequiredArg().ofType(String.class).defaultsTo("");
+        ArgumentAcceptingOptionSpec<String> revisionSpec = optParser.accepts("revision","Revision string to display").withRequiredArg().ofType(String.class).defaultsTo("1");
+        ArgumentAcceptingOptionSpec<Boolean> autoConnectSpec = optParser.accepts("autoConnect","Auto-connect to server on launch").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.TRUE);
 		final OptionSet options = optParser.parse(args);
+
+        if (options.has("help")) {
+            try {
+                optParser.printHelpOn(System.out);
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
 		initExceptions();
 
@@ -40,8 +57,11 @@ public class FastPack
 		entry.setName(serverNameSpec.value(options));
 		entry.setServerId(serverIdSpec.value(options));
 		entry.setAddress(serverAddrSpec.value(options));
-		entry.setMainClass("net.minecraft.launchwrapper.Launch");
-		entry.setNewsUrl("about:blank");
+		entry.setMainClass(mainClassSpec.value(options));
+		entry.setNewsUrl(newsURLSpec.value(options));
+        entry.setIconUrl(iconURLSpec.value(options));
+        entry.setRevision(revisionSpec.value(options));
+        entry.setAutoConnect(autoConnectSpec.value(options));
 		entry.setVersion(MCVersionSpec.value(options));
 		definition.setServerEntry(entry);
 		definition.addImport(new Import("http://files.mcupdater.com/example/forge.php?mc=" + MCVersionSpec.value(options) + "&forge=" + forgeVersionSpec.value(options),"forge"));
@@ -62,14 +82,17 @@ public class FastPack
 			BufferedWriter fileWriter = Files.newBufferedWriter(xmlPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 			fileWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			fileWriter.newLine();
-			fileWriter.write("<ServerPack version=\"" + Version.API_VERSION + "\" xmlns=\"http://www.mcupdater.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.mcupdater.com http://files.mcupdater.com/ServerPackv2.xsd\">");
+			fileWriter.write("<ServerPack version=\"" + org.mcupdater.api.Version.API_VERSION + "\" xmlns=\"http://www.mcupdater.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.mcupdater.com http://files.mcupdater.com/ServerPackv2.xsd\">");
 			fileWriter.newLine();
-			fileWriter.write("\t<Server id=\"" + definition.getServerEntry().getServerId() +
-					"\" name=\"" + definition.getServerEntry().getName() +
-					"\" newsUrl=\"" + definition.getServerEntry().getNewsUrl() +
-					"\" version=\"" + definition.getServerEntry().getVersion() +
-					"\" mainClass=\"" + definition.getServerEntry().getMainClass() +
+			fileWriter.write("\t<Server id=\"" + xmlEscape(definition.getServerEntry().getServerId()) +
+					"\" name=\"" + xmlEscape(definition.getServerEntry().getName()) +
+					"\" newsUrl=\"" + xmlEscape(definition.getServerEntry().getNewsUrl()) +
+					"\" version=\"" + xmlEscape(definition.getServerEntry().getVersion()) +
+					"\" mainClass=\"" + xmlEscape(definition.getServerEntry().getMainClass()) +
 					(definition.getServerEntry().getAddress().isEmpty() ? "" : ("\" serverAddress=\"" + xmlEscape(definition.getServerEntry().getAddress()))) +
+                    (definition.getServerEntry().getIconUrl().isEmpty() ? "" : ("\" iconURL=\"" + xmlEscape(definition.getServerEntry().getIconUrl()))) +
+                    "\" revision=\"" + xmlEscape(definition.getServerEntry().getRevision()) +
+                    "\" autoConnect=\"" + Boolean.toString(definition.getServerEntry().isAutoConnect()) +
 					"\">");
 			fileWriter.newLine();
 			for (Import importEntry : definition.getImports()) {
