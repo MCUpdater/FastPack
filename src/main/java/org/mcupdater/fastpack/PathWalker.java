@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
 
 public class PathWalker extends SimpleFileVisitor<Path> {
 	private ServerDefinition server;
@@ -41,7 +42,12 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		String name = file.getFileName().toString();
 		String id;
 		int order = -1;
-		name = name.substring(0,name.lastIndexOf("."));
+		try {
+		    name = name.substring(0,name.lastIndexOf("."));
+		} catch (StringIndexOutOfBoundsException e) {
+		    System.out.println("Unable to process filename without '.' Skipping:" + name);
+		    return FileVisitResult.CONTINUE;
+		}
 		id = name.replace(" ", "");
 		id = id.replaceAll("\\d","").replaceAll("[^a-zA-Z]*$","");
 		String depends = "";
@@ -135,6 +141,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				reader.close();
 			}
 			zf.close();
+		} catch (ZipException e) {
+		    System.out.println("Unable to process, not a zipfile? Skipping:" + name);
+		    return FileVisitResult.CONTINUE;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
