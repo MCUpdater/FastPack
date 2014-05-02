@@ -193,6 +193,8 @@ public class FastPack
 	private static void initExceptions() {
 		modExceptions.put("NotEnoughItems","NEI");
 		modExceptions.put("AWWayofTime","BloodMagic");
+		modExceptions.put("WR-CBE|Core","WirelessRedstone");
+		modExceptions.put("TConstruct","TinkersWorkshop");
 	}
 
 	private static String xmlEscape(String input) {
