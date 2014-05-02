@@ -4,7 +4,6 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.mcupdater.api.Version;
 import org.mcupdater.model.*;
 
 import java.io.BufferedWriter;
@@ -90,7 +89,7 @@ public class FastPack
 					"\" version=\"" + xmlEscape(definition.getServerEntry().getVersion()) +
 					"\" mainClass=\"" + xmlEscape(definition.getServerEntry().getMainClass()) +
 					(definition.getServerEntry().getAddress().isEmpty() ? "" : ("\" serverAddress=\"" + xmlEscape(definition.getServerEntry().getAddress()))) +
-                    (definition.getServerEntry().getIconUrl().isEmpty() ? "" : ("\" iconURL=\"" + xmlEscape(definition.getServerEntry().getIconUrl()))) +
+                    (definition.getServerEntry().getIconUrl().isEmpty() ? "" : ("\" iconUrl=\"" + xmlEscape(definition.getServerEntry().getIconUrl()))) +
                     "\" revision=\"" + xmlEscape(definition.getServerEntry().getRevision()) +
                     "\" autoConnect=\"" + Boolean.toString(definition.getServerEntry().isAutoConnect()) +
 					"\">");
@@ -197,6 +196,6 @@ public class FastPack
 	}
 
 	private static String xmlEscape(String input) {
-		return input.replace("\"", "&quot;").replace("'", "&apos;").replace("<", "&lt;").replace(">","&gt;").replace("&","&amp;");
+		return input.replace("&","&amp;").replace("\"", "&quot;").replace("'", "&apos;").replace("<", "&lt;").replace(">","&gt;");
 	}
 }

@@ -54,16 +54,21 @@ public class ServerDefinition
 			distance = 10000;
 			String configName = config.getPath().substring(config.getPath().indexOf("/"), config.getPath().lastIndexOf("."));
 			for (Module mod : modules) {
-				int newDistance = StringUtils.getLevenshteinDistance(configName, mod.getId());
-				if (snd.soundex(mod.getId()).equals(snd.soundex(configName))) {
-					newDistance -= 10;
-				} else if (snd.soundex(mod.getName()).equals(snd.soundex(configName))) {
-					newDistance -= 10;
-				}
-				//System.out.println(" >" + mod.getId() + " - " + snd.soundex(mod.getId()));
-				if (newDistance < distance) {
-					tempModule = mod;
-					distance = newDistance;
+				try {
+					int newDistance = StringUtils.getLevenshteinDistance(configName, mod.getId());
+					if (snd.soundex(mod.getId()).equals(snd.soundex(configName))) {
+						newDistance -= 10;
+					} else if (snd.soundex(mod.getName()).equals(snd.soundex(configName))) {
+						newDistance -= 10;
+					}
+					//System.out.println(" >" + mod.getId() + " - " + snd.soundex(mod.getId()));
+					if (newDistance < distance) {
+						tempModule = mod;
+						distance = newDistance;
+					}
+				} catch (Exception e) {
+					System.out.println("Problem with Mod " + mod.getName() + " (" + mod.getId() + ") and config " + config.getPath() + " (" + configName + ")");
+					e.printStackTrace();
 				}
 			}
 			System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance +")");

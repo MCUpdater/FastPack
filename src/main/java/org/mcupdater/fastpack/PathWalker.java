@@ -114,6 +114,8 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				} else {
 					if (rootElement.getAsJsonObject().has("modlist")) {
 						info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modlist").get(0), MCModInfo.class);
+					} else if (rootElement.getAsJsonObject().has("modList")) {
+							info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modList").get(0), MCModInfo.class);
 					} else {
 						info = gson.fromJson(rootElement, MCModInfo.class);
 					}
