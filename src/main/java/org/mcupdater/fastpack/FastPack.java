@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 public class FastPack
 {
 	public static Map<String,String> modExceptions = new HashMap<>();
+	public static boolean hasLitemods= false;
 
 	public static void main(final String[] args) {
 		OptionParser optParser = new OptionParser();
@@ -96,6 +97,20 @@ public class FastPack
 			fileWriter.newLine();
 			for (Import importEntry : definition.getImports()) {
 				fileWriter.write("\t\t<Import" + (importEntry.getUrl().isEmpty() ? ">" : (" url=\"" + xmlEscape(importEntry.getUrl())) + "\">") + importEntry.getServerId() + "</Import>");
+				fileWriter.newLine();
+			}
+			if (hasLitemods) {
+				fileWriter.write("\t\t<Module name=\"LiteLoader\" id=\"liteloader\">");
+				fileWriter.newLine();
+				fileWriter.write("\t\t\t<URL>http://dl.liteloader.com/versions/com/mumfrey/liteloader/" + definition.getServerEntry().getVersion() + "/liteloader-" + definition.getServerEntry().getVersion() + ".jar</URL>");
+				fileWriter.newLine();
+				fileWriter.write("\t\t\t<Required isDefault=\"true\">false</Required>");
+				fileWriter.newLine();
+				fileWriter.write("\t\t\t<ModType order=\"100\" launchArgs=\"--tweakClass com.mumfrey.liteloader.launch.LiteLoaderTweaker\">Library</ModType>");
+				fileWriter.newLine();
+				fileWriter.write("\t\t\t<MD5></MD5>");
+				fileWriter.newLine();
+				fileWriter.write("\t\t</Module>");
 				fileWriter.newLine();
 			}
 			for (Module moduleEntry : definition.getModules()) {

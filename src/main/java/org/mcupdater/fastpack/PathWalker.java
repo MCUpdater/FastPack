@@ -99,7 +99,8 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					required = false;
 				default:
 				{
-					if (file.endsWith("litemod")) {
+					if (relativePath.toString().endsWith("litemod")) {
+						FastPack.hasLitemods = true;
 						modType = ModType.Litemod;
 					}
 				}
