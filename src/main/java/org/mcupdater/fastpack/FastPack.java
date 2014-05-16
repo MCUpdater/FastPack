@@ -185,9 +185,9 @@ public class FastPack
 					fileWriter.newLine();
 					fileWriter.write("\t\t\t\t<Path>" + xmlEscape(config.getPath()) + "</Path>");
 					fileWriter.newLine();
+                    fileWriter.write("\t\t\t\t<NoOverwrite>" + config.isNoOverwrite() + "</NoOverwrite>");
+                    fileWriter.newLine();
 					fileWriter.write("\t\t\t\t<MD5>" + xmlEscape(config.getMD5()) + "</MD5>");
-					fileWriter.newLine();
-					fileWriter.write("\t\t\t\t<NoOverwrite>" + config.isNoOverwrite() + "</NoOverwrite>");
 					fileWriter.newLine();
 					fileWriter.write("\t\t\t</ConfigFile>");
 					fileWriter.newLine();
