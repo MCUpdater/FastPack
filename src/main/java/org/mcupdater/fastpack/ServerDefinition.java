@@ -81,6 +81,6 @@ public class ServerDefinition
 	}
 
 	public void sortMods() {
-		Collections.sort(modules, new ModuleComparator());
+		Collections.sort(modules, new ModuleComparator(ModuleComparator.Mode.IMPORTANCE));
 	}
 }
