@@ -19,7 +19,7 @@ import java.util.Map.Entry;
 
 public class FastPack
 {
-	public static Map<String,String> modExceptions = new HashMap<>();
+	public static final Map<String,String> modExceptions = new HashMap<>();
 	public static boolean hasLitemods= false;
 
 	public static void main(final String[] args) {
