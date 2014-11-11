@@ -104,6 +104,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 						modType = ModType.Litemod;
 					}
 				}
+				if (relativePath.toString().split(sep)[1].matches("\\d+(\\.\\d+)*")) {
+					// Do something here to handle version specific subfolder mods :P
+				}
 			}
 		}
 		try {
