@@ -41,6 +41,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		String md5 = DigestUtils.md5Hex(is);
 		String name = file.getFileName().toString();
 		String id;
+		String modPath = "";
 		int order = -1;
 		try {
 		    name = name.substring(0,name.lastIndexOf("."));
@@ -105,7 +106,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					}
 				}
 				if (relativePath.toString().split(sep)[1].matches("\\d+(\\.\\d+)*")) {
-					// Do something here to handle version specific subfolder mods :P
+					modPath = relativePath.toString().replace("optional","mods");
 				}
 			}
 		}
@@ -157,6 +158,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
 			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),"both",null,mapMeta,"","",new ArrayList<GenericModule>());
+			if (!modPath.isEmpty()) {
+				newMod.setPath(modPath);
+			}
 			server.addModule(newMod);
 		}
 		return FileVisitResult.CONTINUE;

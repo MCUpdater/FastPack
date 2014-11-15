@@ -120,6 +120,10 @@ public class FastPack
 					fileWriter.write("\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
 					fileWriter.newLine();
 				}
+				if (!moduleEntry.getPath().isEmpty()) {
+					fileWriter.write("\t\t\t<ModPath>" + xmlEscape(moduleEntry.getPath()) + "</ModPath>");
+					fileWriter.newLine();
+				}
 				fileWriter.write("\t\t\t<Required");
 				if (moduleEntry.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
 				fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
