@@ -20,7 +20,9 @@ import java.util.Map.Entry;
 public class FastPack
 {
 	public static final Map<String,String> modExceptions = new HashMap<>();
+	public static final Map<String, String> configExceptions = new HashMap<>();
 	public static boolean hasLitemods= false;
+	private static boolean debug = false;
 
 	public static void main(final String[] args) {
 		OptionParser optParser = new OptionParser();
@@ -39,6 +41,7 @@ public class FastPack
         ArgumentAcceptingOptionSpec<String> iconURLSpec = optParser.accepts("iconURL","URL of icon to display in instance list").withRequiredArg().ofType(String.class).defaultsTo("");
         ArgumentAcceptingOptionSpec<String> revisionSpec = optParser.accepts("revision","Revision string to display").withRequiredArg().ofType(String.class).defaultsTo("1");
         ArgumentAcceptingOptionSpec<Boolean> autoConnectSpec = optParser.accepts("autoConnect","Auto-connect to server on launch").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.TRUE);
+		optParser.accepts("debug","Output full config matching data");
 		final OptionSet options = optParser.parse(args);
 
         if (options.has("help")) {
@@ -49,6 +52,10 @@ public class FastPack
                 e.printStackTrace();
             }
         }
+
+		if (options.has("debug")) {
+			debug = true;
+		}
 
 		initExceptions();
 
@@ -76,7 +83,7 @@ public class FastPack
 			e.printStackTrace();
 		}
 		definition.sortMods();
-		definition.assignConfigs();
+		definition.assignConfigs(debug);
 
 		try {
 			BufferedWriter fileWriter = Files.newBufferedWriter(xmlPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
@@ -214,6 +221,12 @@ public class FastPack
 		modExceptions.put("AWWayofTime","BloodMagic");
 		modExceptions.put("WR-CBE|Core","WirelessRedstone");
 		modExceptions.put("TConstruct","TinkersWorkshop");
+		modExceptions.put("inventorytweaks","InvTweaks");
+		modExceptions.put("ProjRed|Core","ProjectRed");
+		configExceptions.put("AWWayofTime","BloodMagic");
+		configExceptions.put("microblocks","ForgeMultipart");
+		configExceptions.put("cofh/world","CoFHCore");
+		configExceptions.put("cofh/Lexicon-Whitelist","CoFHCore");
 	}
 
 	private static String xmlEscape(String input) {

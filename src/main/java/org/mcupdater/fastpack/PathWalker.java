@@ -68,6 +68,8 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				case "texturepacks-mp-cache":
 				case "assets":
 				case "resourcepacks":
+				case "lib":
+				case "libraries":
 					return FileVisitResult.CONTINUE;
 				//
 				case "instMods":
@@ -92,10 +94,6 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					server.addConfig(newConfig);
 					return FileVisitResult.CONTINUE;
 				}
-				case "lib":
-				case "libraries":
-					modType = ModType.Library;
-					break;
 				case "optional":
 					required = false;
 				default:
