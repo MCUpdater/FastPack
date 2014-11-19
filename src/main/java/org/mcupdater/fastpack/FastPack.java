@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,6 +84,7 @@ public class FastPack
 			e.printStackTrace();
 		}
 		definition.sortMods();
+		definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(),"",true,ModType.Override,0,false,false,true,"",new ArrayList<ConfigFile>(),"BOTH","",new HashMap<String,String>(),"","",new ArrayList<GenericModule>()));
 		definition.assignConfigs(debug);
 
 		try {
@@ -143,8 +145,10 @@ public class FastPack
 				if (!moduleEntry.getJreArgs().isEmpty()) { fileWriter.write(" jreArgs=\"" + xmlEscape(moduleEntry.getJreArgs())); }
 				fileWriter.write(">" + moduleEntry.getModType().toString() + "</ModType>");
 				fileWriter.newLine();
-				fileWriter.write("\t\t\t<MD5>" + moduleEntry.getMD5() + "</MD5>");
-				fileWriter.newLine();
+				if (!moduleEntry.getMD5().isEmpty()) {
+					fileWriter.write("\t\t\t<MD5>" + moduleEntry.getMD5() + "</MD5>");
+					fileWriter.newLine();
+				}
 				if (moduleEntry.getMeta().size() > 0) {
 					fileWriter.write("\t\t\t<Meta>");
 					fileWriter.newLine();
@@ -227,6 +231,8 @@ public class FastPack
 		configExceptions.put("microblocks","ForgeMultipart");
 		configExceptions.put("cofh/world","CoFHCore");
 		configExceptions.put("cofh/Lexicon-Whitelist","CoFHCore");
+		configExceptions.put("hqm","HardcoreQuesting");
+		configExceptions.put("forgeChunkLoading","forge-\\d+.\\d+.\\d+.\\d+");
 	}
 
 	private static String xmlEscape(String input) {

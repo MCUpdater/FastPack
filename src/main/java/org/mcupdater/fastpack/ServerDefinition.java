@@ -61,7 +61,7 @@ public class ServerDefinition
 				try {
 					int newDistance = StringUtils.getLevenshteinDistance(configName, mod.getId());
 					for (Map.Entry<String,String> exception : FastPack.configExceptions.entrySet()) {
-						if (configName.contains(exception.getKey()) && mod.getId().equals(exception.getValue())) {
+						if (configName.contains(exception.getKey()) && mod.getId().matches(exception.getValue())) {
 							newDistance -= 15;
 						}
 					}

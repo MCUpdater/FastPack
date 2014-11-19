@@ -103,16 +103,23 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 						modType = ModType.Litemod;
 					}
 				}
-				if (relativePath.toString().split(sep)[1].matches("\\d+(\\.\\d+)*")) {
-					modPath = relativePath.toString().replace("optional","mods");
+				String cleanPath = relativePath.toString().replace("\\","/");
+				if (cleanPath.split("/")[1].matches("\\d+(\\.\\d+)*")) {
+					modPath = cleanPath.replace("optional","mods");
 				}
 			}
 		}
 		try {
 			ZipFile zf = new ZipFile(file.toFile());
 			System.out.println(file.toString() + ": " + zf.size() + " entries in file.");
-			if (zf.getEntry("mcmod.info") != null) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(zf.getInputStream(zf.getEntry("mcmod.info"))));
+			if (zf.getEntry("mcmod.info") != null || zf.getEntry("neimod.info") != null || zf.getEntry("cccmod.info") != null) {
+				String whichFile = "mcmod.info";
+				if (zf.getEntry("neimod.info") != null) {
+					whichFile = "neimod.info";
+				} else if (zf.getEntry("cccmod.info") != null) {
+					whichFile = "cccmod.info";
+				}
+				BufferedReader reader = new BufferedReader(new InputStreamReader(zf.getInputStream(zf.getEntry(whichFile))));
 				MCModInfo info;
 				JsonParser parser = new JsonParser();
 				JsonElement rootElement = parser.parse(reader);
