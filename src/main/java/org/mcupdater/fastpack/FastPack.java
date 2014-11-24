@@ -42,6 +42,7 @@ public class FastPack
         ArgumentAcceptingOptionSpec<String> iconURLSpec = optParser.accepts("iconURL","URL of icon to display in instance list").withRequiredArg().ofType(String.class).defaultsTo("");
         ArgumentAcceptingOptionSpec<String> revisionSpec = optParser.accepts("revision","Revision string to display").withRequiredArg().ofType(String.class).defaultsTo("1");
         ArgumentAcceptingOptionSpec<Boolean> autoConnectSpec = optParser.accepts("autoConnect","Auto-connect to server on launch").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.TRUE);
+        ArgumentAcceptingOptionSpec<String> stylesheetSpec = optParser.accepts("xslt","Path of XSLT file").withRequiredArg().ofType(String.class).defaultsTo("");
 		optParser.accepts("debug","Output full config matching data");
 		final OptionSet options = optParser.parse(args);
 
@@ -73,6 +74,7 @@ public class FastPack
 		entry.setVersion(MCVersionSpec.value(options));
 		definition.setServerEntry(entry);
 		definition.addImport(new Import("http://files.mcupdater.com/example/forge.php?mc=" + MCVersionSpec.value(options) + "&forge=" + forgeVersionSpec.value(options),"forge"));
+        String stylesheet = stylesheetSpec.value(options);
 
 		Path searchPath = new File(searchPathSpec.value(options)).toPath();
 		Path xmlPath = new File(xmlPathSpec.value(options)).toPath();
@@ -91,6 +93,10 @@ public class FastPack
 			BufferedWriter fileWriter = Files.newBufferedWriter(xmlPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 			fileWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			fileWriter.newLine();
+            if (!stylesheet.isEmpty()) {
+                fileWriter.write("<?xml-stylesheet href=\"" + xmlEscape(stylesheet) + "\" type=\"text/xsl\" ?>");
+                fileWriter.newLine();
+            }
 			fileWriter.write("<ServerPack version=\"" + org.mcupdater.api.Version.API_VERSION + "\" xmlns=\"http://www.mcupdater.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.mcupdater.com http://files.mcupdater.com/ServerPackv2.xsd\">");
 			fileWriter.newLine();
 			fileWriter.write("\t<Server id=\"" + xmlEscape(definition.getServerEntry().getServerId()) +
@@ -233,6 +239,7 @@ public class FastPack
 		configExceptions.put("cofh/Lexicon-Whitelist","CoFHCore");
 		configExceptions.put("hqm","HardcoreQuesting");
 		configExceptions.put("forgeChunkLoading","forge-\\d+.\\d+.\\d+.\\d+");
+        configExceptions.put("scripts","MineTweaker3");
 	}
 
 	private static String xmlEscape(String input) {

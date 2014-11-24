@@ -85,6 +85,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					break;
 				}
 				case "config":
+                case "scripts":
 				{
 					String newPath = relativePath.toString();
 					if (sep.equals("\\")) {
