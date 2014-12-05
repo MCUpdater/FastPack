@@ -168,6 +168,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
 			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),"both",null,mapMeta,"","",new ArrayList<GenericModule>());
+			if (newMod.getModType().equals(ModType.Litemod)) {
+				newMod.setDepends("liteloader");
+			}
 			if (!modPath.isEmpty()) {
 				newMod.setPath(modPath);
 			}

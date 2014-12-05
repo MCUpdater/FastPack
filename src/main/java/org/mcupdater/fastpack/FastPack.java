@@ -129,7 +129,7 @@ public class FastPack
 				fileWriter.newLine();
 			}
 			for (Module moduleEntry : definition.getModules()) {
-				fileWriter.write("\t\t<Module name=\"" + moduleEntry.getName() + "\" id=\"" + moduleEntry.getId() + "\" depends=\"" + moduleEntry.getDepends() + "\" side=\"" + moduleEntry.getSide() + "\">");
+				fileWriter.write("\t\t<Module name=\"" + xmlEscape(moduleEntry.getName()) + "\" id=\"" + moduleEntry.getId() + "\" depends=\"" + moduleEntry.getDepends() + "\" side=\"" + moduleEntry.getSide() + "\">");
 				fileWriter.newLine();
 				for (PrioritizedURL url : moduleEntry.getPrioritizedUrls()) {
 					fileWriter.write("\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
@@ -140,7 +140,7 @@ public class FastPack
 					fileWriter.newLine();
 				}
 				fileWriter.write("\t\t\t<Required");
-				if (moduleEntry.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
+				if (!moduleEntry.getRequired() && moduleEntry.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
 				fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
 				fileWriter.newLine();
 				fileWriter.write("\t\t\t<ModType");
@@ -166,14 +166,14 @@ public class FastPack
 					fileWriter.newLine();
 				}
 				for (GenericModule submodule : moduleEntry.getSubmodules()) {
-					fileWriter.write("\t\t\t<Submodule name=\"" + submodule.getName() + "\" id=\"" + submodule.getId() + "\" depends=\"" + submodule.getDepends() + "\" side=\"" + submodule.getSide() + "\">");
+					fileWriter.write("\t\t\t<Submodule name=\"" + xmlEscape(submodule.getName()) + "\" id=\"" + submodule.getId() + "\" depends=\"" + submodule.getDepends() + "\" side=\"" + submodule.getSide() + "\">");
 					fileWriter.newLine();
 					for (PrioritizedURL url : submodule.getPrioritizedUrls()) {
 						fileWriter.write("\t\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
 						fileWriter.newLine();
 					}
 					fileWriter.write("\t\t\t\t<Required");
-					if (submodule.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
+					if (!submodule.getRequired() && submodule.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
 					fileWriter.write(">" + (submodule.getRequired() ? "true" : "false") + "</Required>");
 					fileWriter.newLine();
 					fileWriter.write("<ModType");
