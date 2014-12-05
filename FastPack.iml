@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id=":FastPack" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="org.mcupdater" external.system.module.version="1.6.2" type="JAVA_MODULE" version="4">
+<module external.linked.project.id=":FastPack" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="org.mcupdater" external.system.module.version="1.6.3" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
@@ -15,10 +15,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="MCU-API" exported="" />
-    <orderEntry type="library" exported="" name="Gradle: jopt-simple-4.6" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: commons-codec-1.9" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: commons-lang3-3.2.1" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: gson-2.2.4" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: net.sf.jopt-simple:jopt-simple:4.6" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-codec:commons-codec:1.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.apache.commons:commons-lang3:3.2.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: com.google.code.gson:gson:2.2.4" level="project" />
   </component>
 </module>
-

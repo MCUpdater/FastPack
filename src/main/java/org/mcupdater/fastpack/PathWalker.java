@@ -137,20 +137,24 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 						info = gson.fromJson(rootElement, MCModInfo.class);
 					}
 				}
-				id = info.modId;
-				if (id.startsWith("mod_")) { id = id.substring(4); }
-				name = info.name;
-				String authors;
-				if (info.authors.size() > 0) {
-					authors = info.authors.toString();
-				} else {
-					authors = info.authorList.toString();
+				if (!info.modId.equals("examplemod")) {
+					id = info.modId;
+					name = info.name;
+					String authors;
+					if (info.authors.size() > 0) {
+						authors = info.authors.toString();
+					} else {
+						authors = info.authorList.toString();
+					}
+					mapMeta.put("version", info.version);
+					mapMeta.put("authors", authors.substring(1, authors.length() - 1));
+					mapMeta.put("description", info.description);
+					mapMeta.put("credits", info.credits);
+					mapMeta.put("url", info.url);
 				}
-				mapMeta.put("version", info.version);
-				mapMeta.put("authors", authors.substring(1,authors.length()-1));
-				mapMeta.put("description", info.description);
-				mapMeta.put("credits", info.credits);
-				mapMeta.put("url", info.url);
+				if (id.startsWith("mod_")) {
+					id = id.substring(4);
+				}
 				reader.close();
 			}
 			zf.close();
