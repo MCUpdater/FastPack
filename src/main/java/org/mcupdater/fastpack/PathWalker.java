@@ -137,7 +137,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 						info = gson.fromJson(rootElement, MCModInfo.class);
 					}
 				}
-				if (!info.modId.equals("examplemod")) {
+				if (!(info.modId.equals("examplemod") || info.modId.isEmpty())) {
 					id = info.modId;
 					name = info.name;
 					String authors;
