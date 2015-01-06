@@ -37,6 +37,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 		Path relativePath = rootPath.relativize(file);
 		String downloadURL = urlBase + "/" + relativePath.toString().replace("\\","/").replace(" ", "%20");
+		long size = Files.size(file);
 		InputStream is = Files.newInputStream(file);
 		String md5 = DigestUtils.md5Hex(is);
 		String name = file.getFileName().toString();
@@ -113,49 +114,66 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		try {
 			ZipFile zf = new ZipFile(file.toFile());
 			System.out.println(file.toString() + ": " + zf.size() + " entries in file.");
-			if (zf.getEntry("mcmod.info") != null || zf.getEntry("neimod.info") != null || zf.getEntry("cccmod.info") != null) {
-				String whichFile = "mcmod.info";
-				if (zf.getEntry("neimod.info") != null) {
-					whichFile = "neimod.info";
-				} else if (zf.getEntry("cccmod.info") != null) {
-					whichFile = "cccmod.info";
-				}
-				BufferedReader reader = new BufferedReader(new InputStreamReader(zf.getInputStream(zf.getEntry(whichFile))));
-				MCModInfo info;
-				JsonParser parser = new JsonParser();
-				JsonElement rootElement = parser.parse(reader);
-				if (rootElement.isJsonArray())
-				{
-					JsonArray jsonList = rootElement.getAsJsonArray();
-					info = gson.fromJson(jsonList.get(0), MCModInfo.class);
-				} else {
-					if (rootElement.getAsJsonObject().has("modlist")) {
-						info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modlist").get(0), MCModInfo.class);
-					} else if (rootElement.getAsJsonObject().has("modList")) {
-							info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modList").get(0), MCModInfo.class);
-					} else {
-						info = gson.fromJson(rootElement, MCModInfo.class);
-					}
-				}
-				if (!(info.modId.equals("examplemod") || info.modId.isEmpty())) {
-					id = info.modId;
+			if (modType.equals(ModType.Litemod)) {
+				if (zf.getEntry("litemod.json") != null) {
+					BufferedReader reader = new BufferedReader(new InputStreamReader(zf.getInputStream(zf.getEntry("litemod.json"))));
+					LitemodInfo info;
+					JsonParser parser = new JsonParser();
+					JsonElement rootElement = parser.parse(reader);
+					info = gson.fromJson(rootElement, LitemodInfo.class);
 					name = info.name;
-					String authors;
-					if (info.authors.size() > 0) {
-						authors = info.authors.toString();
-					} else {
-						authors = info.authorList.toString();
-					}
+					id = info.name.replace(" ","");
 					mapMeta.put("version", info.version);
-					mapMeta.put("authors", authors.substring(1, authors.length() - 1));
+					mapMeta.put("authors", info.author);
 					mapMeta.put("description", info.description);
-					mapMeta.put("credits", info.credits);
 					mapMeta.put("url", info.url);
+					mapMeta.put("revision", info.revision);
+					reader.close();
 				}
-				if (id.startsWith("mod_")) {
-					id = id.substring(4);
+			} else {
+				if (zf.getEntry("mcmod.info") != null || zf.getEntry("neimod.info") != null || zf.getEntry("cccmod.info") != null) {
+					String whichFile = "mcmod.info";
+					if (zf.getEntry("neimod.info") != null) {
+						whichFile = "neimod.info";
+					} else if (zf.getEntry("cccmod.info") != null) {
+						whichFile = "cccmod.info";
+					}
+					BufferedReader reader = new BufferedReader(new InputStreamReader(zf.getInputStream(zf.getEntry(whichFile))));
+					MCModInfo info;
+					JsonParser parser = new JsonParser();
+					JsonElement rootElement = parser.parse(reader);
+					if (rootElement.isJsonArray()) {
+						JsonArray jsonList = rootElement.getAsJsonArray();
+						info = gson.fromJson(jsonList.get(0), MCModInfo.class);
+					} else {
+						if (rootElement.getAsJsonObject().has("modlist")) {
+							info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modlist").get(0), MCModInfo.class);
+						} else if (rootElement.getAsJsonObject().has("modList")) {
+							info = gson.fromJson(rootElement.getAsJsonObject().getAsJsonArray("modList").get(0), MCModInfo.class);
+						} else {
+							info = gson.fromJson(rootElement, MCModInfo.class);
+						}
+					}
+					if (!(info.modId.equals("examplemod") || info.modId.isEmpty())) {
+						id = info.modId;
+						name = info.name;
+						String authors;
+						if (info.authors.size() > 0) {
+							authors = info.authors.toString();
+						} else {
+							authors = info.authorList.toString();
+						}
+						mapMeta.put("version", info.version);
+						mapMeta.put("authors", authors.substring(1, authors.length() - 1));
+						mapMeta.put("description", info.description);
+						mapMeta.put("credits", info.credits);
+						mapMeta.put("url", info.url);
+					}
+					if (id.startsWith("mod_")) {
+						id = id.substring(4);
+					}
+					reader.close();
 				}
-				reader.close();
 			}
 			zf.close();
 		} catch (ZipException e) {
@@ -168,6 +186,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
 			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),"both",null,mapMeta,"","",new ArrayList<GenericModule>());
+			newMod.setFilesize(size);
 			if (newMod.getModType().equals(ModType.Litemod)) {
 				newMod.setDepends("liteloader");
 			}
