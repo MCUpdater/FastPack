@@ -44,14 +44,6 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		String id;
 		String modPath = "";
 		int order = -1;
-		try {
-		    name = name.substring(0,name.lastIndexOf("."));
-		} catch (StringIndexOutOfBoundsException e) {
-		    System.out.println("Unable to process filename without '.' Skipping:" + name);
-		    return FileVisitResult.CONTINUE;
-		}
-		id = name.replace(" ", "");
-		id = id.replaceAll("\\d","").replaceAll("[^a-zA-Z]*$","");
 		String depends = "";
 		Boolean required = true;
 		ModType modType = ModType.Regular;
@@ -60,6 +52,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		if (relativePath.toString().contains(".DS_Store")) { return FileVisitResult.CONTINUE; }
 		if (relativePath.toString().contains(sep)) {
 			switch (relativePath.toString().substring(0, relativePath.toString().indexOf(sep))) {
+				case "asm":
 				case "bin":
 				case "resources":
 				case "saves":
@@ -71,6 +64,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				case "resourcepacks":
 				case "lib":
 				case "libraries":
+				case "versions":
 					return FileVisitResult.CONTINUE;
 				//
 				case "instMods":
@@ -111,6 +105,14 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				}
 			}
 		}
+		try {
+			name = name.substring(0,name.lastIndexOf("."));
+		} catch (StringIndexOutOfBoundsException e) {
+			System.out.println("Unable to process filename without '.' Skipping:" + name);
+			return FileVisitResult.CONTINUE;
+		}
+		id = name.replace(" ", "");
+		id = id.replaceAll("\\d","").replaceAll("[^a-zA-Z]*$","");
 		try {
 			ZipFile zf = new ZipFile(file.toFile());
 			System.out.println(file.toString() + ": " + zf.size() + " entries in file.");
