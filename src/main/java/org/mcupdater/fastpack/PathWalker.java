@@ -47,6 +47,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		String depends = "";
 		Boolean required = true;
 		ModType modType = ModType.Regular;
+        ModSide side = ModSide.BOTH;
 		HashMap<String,String> mapMeta = new HashMap<>();
 		//System.out.println(relativePath.toString());
 		if (relativePath.toString().contains(".DS_Store")) { return FileVisitResult.CONTINUE; }
@@ -92,6 +93,11 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				}
 				case "optional":
 					required = false;
+                case "client":
+                    required = false;
+                    side = ModSide.CLIENT;
+                case "server":
+                    side = ModSide.SERVER;
 				default:
 				{
 					if (relativePath.toString().endsWith("litemod")) {
@@ -101,7 +107,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				}
 				String cleanPath = relativePath.toString().replace("\\","/");
 				if (cleanPath.split("/")[1].matches("\\d+(\\.\\d+)*")) {
-					modPath = cleanPath.replace("optional","mods");
+					modPath = cleanPath.replaceAll("^(optional|client|server)","mods");
 				}
 			}
 		}
@@ -187,7 +193,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			if (FastPack.modExceptions.containsKey(id)) { id = FastPack.modExceptions.get(id); }
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
-			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),"both",null,mapMeta,"","",new ArrayList<GenericModule>());
+			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<GenericModule>());
 			newMod.setFilesize(size);
 			if (newMod.getModType().equals(ModType.Litemod)) {
 				newMod.setDepends("liteloader");
