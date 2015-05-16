@@ -93,23 +93,24 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 				}
 				case "optional":
 					required = false;
+                    break;
                 case "client":
                     required = false;
                     side = ModSide.CLIENT;
+                    break;
                 case "server":
                     side = ModSide.SERVER;
-				default:
-				{
-					if (relativePath.toString().endsWith("litemod")) {
-						FastPack.hasLitemods = true;
-						modType = ModType.Litemod;
-					}
-				}
-				String cleanPath = relativePath.toString().replace("\\","/");
-				if (cleanPath.split("/")[1].matches("\\d+(\\.\\d+)*")) {
-					modPath = cleanPath.replaceAll("^(optional|client|server)","mods");
-				}
+                    break;
 			}
+            if (relativePath.toString().endsWith("litemod")) {
+                FastPack.hasLitemods = true;
+                modType = ModType.Litemod;
+            }
+            String cleanPath = relativePath.toString().replace("\\","/");
+            if (cleanPath.split("/")[1].matches("\\d+(\\.\\d+)*")) {
+                modPath = cleanPath.replaceAll("^(optional|client|server)", "mods");
+            }
+
 		}
 		try {
 			name = name.substring(0,name.lastIndexOf("."));
