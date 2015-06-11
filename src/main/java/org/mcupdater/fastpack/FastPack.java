@@ -22,7 +22,8 @@ public class FastPack
 {
 	public static final Map<String,String> modExceptions = new HashMap<>();
 	public static final Map<String, String> configExceptions = new HashMap<>();
-	public static boolean hasLitemods= false;
+    public static boolean hasForge = false;
+	public static boolean hasLitemods = false;
 	private static boolean debug = false;
 
 	public static void main(final String[] args) {
@@ -32,7 +33,7 @@ public class FastPack
 		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path","Path to scan for mods and configs").requiredUnless("help").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL","Base URL for downloads").requiredUnless("help").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc","Minecraft version").requiredUnless("help").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge","Forge version").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge","Forge version").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out","XML file to write").requiredUnless("help").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver","Server address").withRequiredArg().ofType(String.class).defaultsTo("");
 		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name","Server name").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
@@ -55,6 +56,10 @@ public class FastPack
             }
         }
 
+        if (options.has("forge")) {
+            hasForge = true;
+        }
+
 		if (options.has("debug")) {
 			debug = true;
 		}
@@ -73,7 +78,9 @@ public class FastPack
         entry.setAutoConnect(autoConnectSpec.value(options));
 		entry.setVersion(MCVersionSpec.value(options));
 		definition.setServerEntry(entry);
-		definition.addImport(new Import("http://files.mcupdater.com/example/forge.php?mc=" + MCVersionSpec.value(options) + "&forge=" + forgeVersionSpec.value(options),"forge"));
+        if (hasForge) {
+            definition.addImport(new Import("http://files.mcupdater.com/example/forge.php?mc=" + MCVersionSpec.value(options) + "&forge=" + forgeVersionSpec.value(options), "forge"));
+        }
         String stylesheet = stylesheetSpec.value(options);
 
 		Path searchPath = new File(searchPathSpec.value(options)).toPath();
@@ -86,8 +93,10 @@ public class FastPack
 			e.printStackTrace();
 		}
 		definition.sortMods();
-		definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(),"",true,ModType.Override,0,false,false,true,"",new ArrayList<ConfigFile>(),"BOTH","",new HashMap<String,String>(),"","",new ArrayList<GenericModule>()));
-		definition.assignConfigs(debug);
+        if (hasForge) {
+            definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<GenericModule>(), ""));
+        }
+        definition.assignConfigs(debug);
 
 		try {
 			BufferedWriter fileWriter = Files.newBufferedWriter(xmlPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);

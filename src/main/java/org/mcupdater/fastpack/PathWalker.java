@@ -194,7 +194,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			if (FastPack.modExceptions.containsKey(id)) { id = FastPack.modExceptions.get(id); }
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
-			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<GenericModule>());
+			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<GenericModule>(),"");
 			newMod.setFilesize(size);
 			if (newMod.getModType().equals(ModType.Litemod)) {
 				newMod.setDepends("liteloader");
