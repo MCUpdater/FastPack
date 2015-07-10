@@ -92,6 +92,11 @@ public class FastPack
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+        if (debug) {
+            for (Module modEntry: definition.getModules()) {
+                System.out.println(modEntry.toString());
+            }
+        }
 		definition.sortMods();
         if (hasForge) {
             definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<GenericModule>(), ""));
@@ -254,6 +259,12 @@ public class FastPack
 	}
 
 	private static String xmlEscape(String input) {
-		return input.replace("&","&amp;").replace("\"", "&quot;").replace("'", "&apos;").replace("<", "&lt;").replace(">","&gt;");
+        String result;
+		try {
+            result = input.replace("&","&amp;").replace("\"", "&quot;").replace("'", "&apos;").replace("<", "&lt;").replace(">","&gt;");
+        } catch (Exception e) {
+            result = "!!!! Error !!!!";
+        }
+        return result;
 	}
 }

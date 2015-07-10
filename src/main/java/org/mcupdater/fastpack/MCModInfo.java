@@ -8,8 +8,8 @@ import java.util.List;
 public class MCModInfo
 {
 	@SerializedName("modid")
-	public String modId;
-	public String name;
+	public String modId = "";
+	public String name = "";
 	public String description = "";
 	public String url = "";
 	public String updateUrl = "";
