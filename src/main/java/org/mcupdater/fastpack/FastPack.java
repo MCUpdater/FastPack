@@ -25,6 +25,8 @@ public class FastPack
     public static boolean hasForge = false;
 	public static boolean hasLitemods = false;
 	private static boolean debug = false;
+	private static boolean doConfigs = true;
+	private static boolean onlyOverrides = false;
 
 	public static void main(final String[] args) {
 		OptionParser optParser = new OptionParser();
@@ -44,6 +46,8 @@ public class FastPack
         ArgumentAcceptingOptionSpec<String> revisionSpec = optParser.accepts("revision","Revision string to display").withRequiredArg().ofType(String.class).defaultsTo("1");
         ArgumentAcceptingOptionSpec<Boolean> autoConnectSpec = optParser.accepts("autoConnect","Auto-connect to server on launch").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.TRUE);
         ArgumentAcceptingOptionSpec<String> stylesheetSpec = optParser.accepts("xslt","Path of XSLT file").withRequiredArg().ofType(String.class).defaultsTo("");
+		optParser.accepts("noConfigs","Do not generate ConfigFile entries");
+		optParser.accepts("configsOnly","Generate all mods as overrides with ConfigFile entries");
 		optParser.accepts("debug","Output full config matching data");
 		final OptionSet options = optParser.parse(args);
 
@@ -62,6 +66,14 @@ public class FastPack
 
 		if (options.has("debug")) {
 			debug = true;
+		}
+
+		if (options.has("noConfigs")) {
+			doConfigs = false;
+		}
+
+		if (options.has("configOnly")) {
+			onlyOverrides = true;
 		}
 
 		initExceptions();
@@ -101,7 +113,7 @@ public class FastPack
         if (hasForge) {
             definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<GenericModule>(), ""));
         }
-        definition.assignConfigs(debug);
+        if (doConfigs) definition.assignConfigs(debug);
 
 		try {
 			BufferedWriter fileWriter = Files.newBufferedWriter(xmlPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
@@ -128,7 +140,7 @@ public class FastPack
 				fileWriter.write("\t\t<Import" + (importEntry.getUrl().isEmpty() ? ">" : (" url=\"" + xmlEscape(importEntry.getUrl())) + "\">") + importEntry.getServerId() + "</Import>");
 				fileWriter.newLine();
 			}
-			if (hasLitemods) {
+			if (hasLitemods && !onlyOverrides) {
 				fileWriter.write("\t\t<Module name=\"LiteLoader\" id=\"liteloader\">");
 				fileWriter.newLine();
 				fileWriter.write("\t\t\t<URL>http://dl.liteloader.com/versions/com/mumfrey/liteloader/" + definition.getServerEntry().getVersion() + "/liteloader-" + definition.getServerEntry().getVersion() + ".jar</URL>");
@@ -145,74 +157,103 @@ public class FastPack
 			for (Module moduleEntry : definition.getModules()) {
 				fileWriter.write("\t\t<Module name=\"" + xmlEscape(moduleEntry.getName()) + "\" id=\"" + moduleEntry.getId() + "\" depends=\"" + moduleEntry.getDepends() + "\" side=\"" + moduleEntry.getSide() + "\">");
 				fileWriter.newLine();
-				for (PrioritizedURL url : moduleEntry.getPrioritizedUrls()) {
-					fileWriter.write("\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
-					fileWriter.newLine();
-				}
-				if (!moduleEntry.getPath().isEmpty()) {
-					fileWriter.write("\t\t\t<ModPath>" + xmlEscape(moduleEntry.getPath()) + "</ModPath>");
-					fileWriter.newLine();
-				}
-				fileWriter.write("\t\t\t<Size>" + Long.toString(moduleEntry.getFilesize()) + "</Size>");
-				fileWriter.newLine();
-				fileWriter.write("\t\t\t<Required");
-				if (!moduleEntry.getRequired() && moduleEntry.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
-				fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
-				fileWriter.newLine();
-				fileWriter.write("\t\t\t<ModType");
-				if (moduleEntry.getInRoot()) { fileWriter.write(" inRoot=\"true\""); }
-				if (moduleEntry.getJarOrder() > 0) { fileWriter.write(" order=\"" + moduleEntry.getJarOrder() + "\""); }
-				if (moduleEntry.getKeepMeta()) { fileWriter.write(" keepMeta=\"true\""); }
-				if (!moduleEntry.getLaunchArgs().isEmpty()) { fileWriter.write(" launchArgs=\"" + xmlEscape(moduleEntry.getLaunchArgs()) + "\""); }
-				if (!moduleEntry.getJreArgs().isEmpty()) { fileWriter.write(" jreArgs=\"" + xmlEscape(moduleEntry.getJreArgs())); }
-				fileWriter.write(">" + moduleEntry.getModType().toString() + "</ModType>");
-				fileWriter.newLine();
-				if (!moduleEntry.getMD5().isEmpty()) {
-					fileWriter.write("\t\t\t<MD5>" + moduleEntry.getMD5() + "</MD5>");
-					fileWriter.newLine();
-				}
-				if (moduleEntry.getMeta().size() > 0) {
-					fileWriter.write("\t\t\t<Meta>");
-					fileWriter.newLine();
-					for (Entry<String,String> metaEntry : moduleEntry.getMeta().entrySet()) {
-						fileWriter.write("\t\t\t\t<" + xmlEscape(metaEntry.getKey()) + ">" + xmlEscape(metaEntry.getValue()) + "</" + xmlEscape(metaEntry.getKey()) + ">");
+				if (!onlyOverrides) {
+					for (PrioritizedURL url : moduleEntry.getPrioritizedUrls()) {
+						fileWriter.write("\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
 						fileWriter.newLine();
 					}
-					fileWriter.write("\t\t\t</Meta>");
-					fileWriter.newLine();
-				}
-				for (GenericModule submodule : moduleEntry.getSubmodules()) {
-					fileWriter.write("\t\t\t<Submodule name=\"" + xmlEscape(submodule.getName()) + "\" id=\"" + submodule.getId() + "\" depends=\"" + submodule.getDepends() + "\" side=\"" + submodule.getSide() + "\">");
-					fileWriter.newLine();
-					for (PrioritizedURL url : submodule.getPrioritizedUrls()) {
-						fileWriter.write("\t\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
+					if (!moduleEntry.getPath().isEmpty()) {
+						fileWriter.write("\t\t\t<ModPath>" + xmlEscape(moduleEntry.getPath()) + "</ModPath>");
 						fileWriter.newLine();
 					}
-					fileWriter.write("\t\t\t\t<Required");
-					if (!submodule.getRequired() && submodule.getIsDefault()) { fileWriter.write(" isDefault=\"true\""); }
-					fileWriter.write(">" + (submodule.getRequired() ? "true" : "false") + "</Required>");
+					fileWriter.write("\t\t\t<Size>" + Long.toString(moduleEntry.getFilesize()) + "</Size>");
 					fileWriter.newLine();
-					fileWriter.write("<ModType");
-					if (submodule.getInRoot()) { fileWriter.write(" inRoot=\"true\""); }
-					if (submodule.getJarOrder() > 0) { fileWriter.write(" order=\"" + submodule.getJarOrder() + "\""); }
-					if (submodule.getKeepMeta()) { fileWriter.write(" keepMeta=\"true\""); }
-					if (!submodule.getLaunchArgs().isEmpty()) { fileWriter.write(" launchArgs=\"" + xmlEscape(submodule.getLaunchArgs()) + "\""); }
-					if (!submodule.getJreArgs().isEmpty()) { fileWriter.write(" jreArgs=\"" + xmlEscape(submodule.getJreArgs())); }
-					fileWriter.write(">" + submodule.getModType().toString() + "</ModType>");
+					fileWriter.write("\t\t\t<Required");
+					if (!moduleEntry.getRequired() && moduleEntry.getIsDefault()) {
+						fileWriter.write(" isDefault=\"true\"");
+					}
+					fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
 					fileWriter.newLine();
-					fileWriter.write("\t\t\t\t<MD5>" + submodule.getMD5() + "</MD5>");
+					fileWriter.write("\t\t\t<ModType");
+					if (moduleEntry.getInRoot()) {
+						fileWriter.write(" inRoot=\"true\"");
+					}
+					if (moduleEntry.getJarOrder() > 0) {
+						fileWriter.write(" order=\"" + moduleEntry.getJarOrder() + "\"");
+					}
+					if (moduleEntry.getKeepMeta()) {
+						fileWriter.write(" keepMeta=\"true\"");
+					}
+					if (!moduleEntry.getLaunchArgs().isEmpty()) {
+						fileWriter.write(" launchArgs=\"" + xmlEscape(moduleEntry.getLaunchArgs()) + "\"");
+					}
+					if (!moduleEntry.getJreArgs().isEmpty()) {
+						fileWriter.write(" jreArgs=\"" + xmlEscape(moduleEntry.getJreArgs()));
+					}
+					fileWriter.write(">" + moduleEntry.getModType().toString() + "</ModType>");
 					fileWriter.newLine();
-					if (submodule.getMeta().size() > 0) {
-						fileWriter.write("\t\t\t\t<Meta>");
+					if (!moduleEntry.getMD5().isEmpty()) {
+						fileWriter.write("\t\t\t<MD5>" + moduleEntry.getMD5() + "</MD5>");
 						fileWriter.newLine();
-						for (Entry<String,String> metaEntry : submodule.getMeta().entrySet()) {
-							fileWriter.write("\t\t\t\t\t<" + xmlEscape(metaEntry.getKey()) + ">" + xmlEscape(metaEntry.getValue()) + "</" + xmlEscape(metaEntry.getKey()) + ">");
+					}
+					if (moduleEntry.getMeta().size() > 0) {
+						fileWriter.write("\t\t\t<Meta>");
+						fileWriter.newLine();
+						for (Entry<String, String> metaEntry : moduleEntry.getMeta().entrySet()) {
+							fileWriter.write("\t\t\t\t<" + xmlEscape(metaEntry.getKey()) + ">" + xmlEscape(metaEntry.getValue()) + "</" + xmlEscape(metaEntry.getKey()) + ">");
 							fileWriter.newLine();
 						}
-						fileWriter.write("\t\t\t\t</Meta>");
+						fileWriter.write("\t\t\t</Meta>");
 						fileWriter.newLine();
 					}
-					fileWriter.write("\t\t\t</Submodule>");
+					for (GenericModule submodule : moduleEntry.getSubmodules()) {
+						fileWriter.write("\t\t\t<Submodule name=\"" + xmlEscape(submodule.getName()) + "\" id=\"" + submodule.getId() + "\" depends=\"" + submodule.getDepends() + "\" side=\"" + submodule.getSide() + "\">");
+						fileWriter.newLine();
+						for (PrioritizedURL url : submodule.getPrioritizedUrls()) {
+							fileWriter.write("\t\t\t\t<URL priority=\"" + url.getPriority() + "\">" + xmlEscape(url.getUrl()) + "</URL>");
+							fileWriter.newLine();
+						}
+						fileWriter.write("\t\t\t\t<Required");
+						if (!submodule.getRequired() && submodule.getIsDefault()) {
+							fileWriter.write(" isDefault=\"true\"");
+						}
+						fileWriter.write(">" + (submodule.getRequired() ? "true" : "false") + "</Required>");
+						fileWriter.newLine();
+						fileWriter.write("<ModType");
+						if (submodule.getInRoot()) {
+							fileWriter.write(" inRoot=\"true\"");
+						}
+						if (submodule.getJarOrder() > 0) {
+							fileWriter.write(" order=\"" + submodule.getJarOrder() + "\"");
+						}
+						if (submodule.getKeepMeta()) {
+							fileWriter.write(" keepMeta=\"true\"");
+						}
+						if (!submodule.getLaunchArgs().isEmpty()) {
+							fileWriter.write(" launchArgs=\"" + xmlEscape(submodule.getLaunchArgs()) + "\"");
+						}
+						if (!submodule.getJreArgs().isEmpty()) {
+							fileWriter.write(" jreArgs=\"" + xmlEscape(submodule.getJreArgs()));
+						}
+						fileWriter.write(">" + submodule.getModType().toString() + "</ModType>");
+						fileWriter.newLine();
+						fileWriter.write("\t\t\t\t<MD5>" + submodule.getMD5() + "</MD5>");
+						fileWriter.newLine();
+						if (submodule.getMeta().size() > 0) {
+							fileWriter.write("\t\t\t\t<Meta>");
+							fileWriter.newLine();
+							for (Entry<String, String> metaEntry : submodule.getMeta().entrySet()) {
+								fileWriter.write("\t\t\t\t\t<" + xmlEscape(metaEntry.getKey()) + ">" + xmlEscape(metaEntry.getValue()) + "</" + xmlEscape(metaEntry.getKey()) + ">");
+								fileWriter.newLine();
+							}
+							fileWriter.write("\t\t\t\t</Meta>");
+							fileWriter.newLine();
+						}
+						fileWriter.write("\t\t\t</Submodule>");
+						fileWriter.newLine();
+					}
+				} else {
+					fileWriter.write("\t\t\t<ModType>Override</ModType>");
 					fileWriter.newLine();
 				}
 				for (ConfigFile config : moduleEntry.getConfigs()) {
@@ -256,6 +297,7 @@ public class FastPack
 		configExceptions.put("hqm","HardcoreQuesting");
 		configExceptions.put("forgeChunkLoading","forge-\\d+.\\d+.\\d+.\\d+");
         configExceptions.put("scripts","MineTweaker3");
+		configExceptions.put(".zs","MineTweaker3");
 	}
 
 	private static String xmlEscape(String input) {
