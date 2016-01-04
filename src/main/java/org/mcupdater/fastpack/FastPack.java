@@ -253,6 +253,12 @@ public class FastPack {
 						fileWriter.newLine();
 					}
 				} else {
+					fileWriter.write("\t\t\t<Required");
+					if (!moduleEntry.getRequired() && moduleEntry.getIsDefault()) {
+						fileWriter.write(" isDefault=\"true\"");
+					}
+					fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
+					fileWriter.newLine();
 					fileWriter.write("\t\t\t<ModType>Override</ModType>");
 					fileWriter.newLine();
 				}
