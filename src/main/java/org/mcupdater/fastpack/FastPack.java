@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -71,7 +72,7 @@ public class FastPack {
 			doConfigs = false;
 		}
 
-		if (options.has("configOnly")) {
+		if (options.has("configsOnly")) {
 			onlyOverrides = true;
 		}
 
@@ -104,14 +105,14 @@ public class FastPack {
 			e.printStackTrace();
 		}
 		if (debug) {
-			for (Module modEntry : definition.getModules()) {
+			for (Module modEntry : definition.getModules().values()) {
 				System.out.println(modEntry.toString());
 			}
 		}
-		definition.sortMods();
 		if (hasForge) {
 			definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<GenericModule>(), ""));
 		}
+        List<Module> sortedModules = definition.sortMods();
 		if (doConfigs) definition.assignConfigs(debug);
 
 		try {
@@ -153,7 +154,7 @@ public class FastPack {
 				fileWriter.write("\t\t</Module>");
 				fileWriter.newLine();
 			}
-			for (Module moduleEntry : definition.getModules()) {
+			for (Module moduleEntry : sortedModules) {
 				fileWriter.write("\t\t<Module name=\"" + xmlEscape(moduleEntry.getName()) + "\" id=\"" + moduleEntry.getId() + "\" depends=\"" + moduleEntry.getDepends() + "\" side=\"" + moduleEntry.getSide() + "\">");
 				fileWriter.newLine();
 				if (!onlyOverrides) {
@@ -252,6 +253,12 @@ public class FastPack {
 						fileWriter.newLine();
 					}
 				} else {
+					fileWriter.write("\t\t\t<Required");
+					if (!moduleEntry.getRequired() && moduleEntry.getIsDefault()) {
+						fileWriter.write(" isDefault=\"true\"");
+					}
+					fileWriter.write(">" + (moduleEntry.getRequired() ? "true" : "false") + "</Required>");
+					fileWriter.newLine();
 					fileWriter.write("\t\t\t<ModType>Override</ModType>");
 					fileWriter.newLine();
 				}

@@ -4,22 +4,19 @@ import org.apache.commons.codec.language.Soundex;
 import org.apache.commons.lang3.StringUtils;
 import org.mcupdater.model.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServerDefinition
 {
 	private ServerList entry;
 	private List<Import> imports;
-	private List<Module> modules;
+	private Map<String, Module> modules;
 	private List<ConfigFile> tempConfigs;
 
 	public ServerDefinition() {
 		this.entry = new ServerList();
 		this.imports = new ArrayList<>();
-		this.modules = new ArrayList<>();
+		this.modules = new HashMap<>();
 		this.tempConfigs = new ArrayList<>();
 	}
 
@@ -32,7 +29,10 @@ public class ServerDefinition
 	}
 
 	public void addModule(Module newMod) {
-		modules.add(newMod);
+        if (modules.containsKey(newMod.getId())) {
+            System.out.println("Warning: ModID: " + newMod.getId() + " belonging to " + newMod.getName() + " already exists in the list, and is being overwritten.");
+        }
+		modules.put(newMod.getId(), newMod);
 	}
 
 	public void setServerEntry(ServerList newEntry) {
@@ -57,7 +57,7 @@ public class ServerDefinition
 			Module tempModule = null;
 			distance = 10000;
 			String configName = config.getPath().substring(config.getPath().indexOf("/"), config.getPath().lastIndexOf("."));
-			for (Module mod : modules) {
+			for (Module mod : modules.values()) {
 				try {
 					int newDistance = StringUtils.getLevenshteinDistance(configName, mod.getId());
 					for (Map.Entry<String,String> exception : FastPack.configExceptions.entrySet()) {
@@ -88,16 +88,25 @@ public class ServerDefinition
 					e.printStackTrace();
 				}
 			}
-			System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance +")\n");
-			modules.get(modules.indexOf(tempModule)).getConfigs().add(config);
+            if (tempModule != null) {
+                System.out.println(config.getPath() + ": " + tempModule.getName() + " (" + distance + ")\n");
+	            if (tempModule.getSide().equals(ModSide.CLIENT)) {
+		            config.setNoOverwrite(true);
+	            }
+                modules.get(tempModule.getId()).getConfigs().add(config);
+            } else {
+                System.out.println(config.getPath() + " could not be assigned to a module!");
+            }
 		}
 	}
 
-	public List<Module> getModules() {
+	public Map<String, Module> getModules() {
 		return modules;
 	}
 
-	public void sortMods() {
-		Collections.sort(modules, new ModuleComparator(ModuleComparator.Mode.IMPORTANCE));
+	public List<Module> sortMods() {
+        List<Module> sorted = new ArrayList<>(modules.values());
+		Collections.sort(sorted, new ModuleComparator(ModuleComparator.Mode.IMPORTANCE));
+        return sorted;
 	}
 }
