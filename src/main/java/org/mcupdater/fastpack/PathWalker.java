@@ -188,6 +188,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					if (id.startsWith("mod_")) {
 						id = id.substring(4);
 					}
+					if (name.isEmpty()) {
+						name = id;
+					}
 					reader.close();
 				}
 			}
