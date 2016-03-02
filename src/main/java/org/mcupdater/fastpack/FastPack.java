@@ -304,6 +304,7 @@ public class FastPack {
 		configExceptions.put("forgeChunkLoading", "forge-\\d+.\\d+.\\d+.\\d+");
 		configExceptions.put("scripts", "MineTweaker3");
 		configExceptions.put(".zs", "MineTweaker3");
+		configExceptions.put("resources", "ResourceLoader");
 	}
 
 	private static String xmlEscape(String input) {

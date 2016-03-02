@@ -55,7 +55,6 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			switch (relativePath.toString().substring(0, relativePath.toString().indexOf(sep))) {
 				case "asm":
 				case "bin":
-				case "resources":
 				case "saves":
 				case "screenshots":
 				case "stats":
@@ -80,14 +79,22 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 					modType = ModType.Coremod;
 					break;
 				}
+				case "extract": {
+					modType = ModType.Extract;
+					break;
+				}
 				case "config":
                 case "scripts":
+				case "resources":
 				{
 					String newPath = relativePath.toString();
 					if (sep.equals("\\")) {
 						newPath = newPath.replace("\\", "/");
 					}
 					ConfigFile newConfig = new ConfigFile(downloadURL, newPath, false, md5);
+					if (newPath.contains("client")) {
+						newConfig.setNoOverwrite(true);
+					}
 					server.addConfig(newConfig);
 					return FileVisitResult.CONTINUE;
 				}
@@ -195,6 +202,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
 			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<GenericModule>(),"");
+			if (modType.equals(ModType.Extract)) {
+				newMod.setInRoot(true);
+			}
 			newMod.setFilesize(size);
 			if (newMod.getModType().equals(ModType.Litemod)) {
 				newMod.setDepends("liteloader");
