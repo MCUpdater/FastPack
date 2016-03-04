@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.mcupdater.model.*;
+import org.mcupdater.util.ServerDefinition;
 
 import java.io.*;
 import java.nio.file.FileVisitResult;
@@ -110,8 +111,8 @@ public class PathWalker extends SimpleFileVisitor<Path> {
                     break;
 			}
             if (relativePath.toString().endsWith("litemod")) {
-                FastPack.hasLitemods = true;
-                modType = ModType.Litemod;
+	            ServerDefinition.hasLitemods = true;
+	            modType = ModType.Litemod;
             }
             String cleanPath = relativePath.toString().replace("\\","/");
             if (cleanPath.split("/")[1].matches("\\d+(\\.\\d+)*")) {
@@ -201,7 +202,9 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (FastPack.modExceptions.containsKey(id)) { id = FastPack.modExceptions.get(id); }
+			if (server.modExceptions.containsKey(id)) {
+				id = server.modExceptions.get(id);
+			}
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
 			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<GenericModule>(),"");
