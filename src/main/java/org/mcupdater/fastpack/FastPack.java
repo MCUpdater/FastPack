@@ -6,6 +6,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.mcupdater.model.*;
 import org.mcupdater.util.ServerDefinition;
+import org.mcupdater.util.ServerPackParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +40,8 @@ public class FastPack {
 		ArgumentAcceptingOptionSpec<String> revisionSpec = optParser.accepts("revision", "Revision string to display").withRequiredArg().ofType(String.class).defaultsTo("1");
 		ArgumentAcceptingOptionSpec<Boolean> autoConnectSpec = optParser.accepts("autoConnect", "Auto-connect to server on launch").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.TRUE);
 		ArgumentAcceptingOptionSpec<String> stylesheetSpec = optParser.accepts("xslt", "Path of XSLT file").withRequiredArg().ofType(String.class).defaultsTo("");
+		ArgumentAcceptingOptionSpec<String> sourcePackURLSpec = optParser.accepts("sourcePackURL", "URL of pack to load - useful with configsOnly").withRequiredArg().ofType(String.class).defaultsTo("");
+		ArgumentAcceptingOptionSpec<String> sourcePackIdSpec = optParser.accepts("sourcePackId", "Server ID of source pack").requiredIf("sourcePackURL").withRequiredArg().ofType(String.class);
 		optParser.accepts("noConfigs", "Do not generate ConfigFile entries");
 		optParser.accepts("configsOnly", "Generate all mods as overrides with ConfigFile entries");
 		optParser.accepts("debug", "Output full config matching data");
@@ -70,7 +73,13 @@ public class FastPack {
 		}
 
 		ServerDefinition definition = new ServerDefinition();
-		ServerList entry = new ServerList();
+		ServerList entry;
+		String sourcePack = sourcePackURLSpec.value(options);
+		if (sourcePack.isEmpty()) {
+			entry = new ServerList();
+		} else {
+			entry = ServerPackParser.loadFromURL(sourcePack, sourcePackIdSpec.value(options));
+		}
 		entry.setName(serverNameSpec.value(options));
 		entry.setServerId(serverIdSpec.value(options));
 		entry.setAddress(serverAddrSpec.value(options));
