@@ -5,6 +5,7 @@ import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.mcupdater.model.*;
+import org.mcupdater.util.MCUpdater;
 import org.mcupdater.util.ServerDefinition;
 import org.mcupdater.util.ServerPackParser;
 
@@ -15,6 +16,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class FastPack {
 	public static boolean hasForge = false;
@@ -55,6 +60,10 @@ public class FastPack {
 				e.printStackTrace();
 			}
 		}
+		MCUpdater.getInstance();
+		ConsoleHandler handler = new ConsoleHandler();
+		handler.setFormatter(new SimpleFormatter());
+		MCUpdater.apiLogger.addHandler(handler);
 
 		if (options.has("forge")) {
 			hasForge = true;
@@ -78,7 +87,12 @@ public class FastPack {
 		if (sourcePack.isEmpty()) {
 			entry = new ServerList();
 		} else {
-			entry = ServerPackParser.loadFromURL(sourcePack, sourcePackIdSpec.value(options));
+			String sourceId = sourcePackIdSpec.value(options);
+			System.out.println(sourcePack + ": " + sourceId);
+			entry = ServerPackParser.loadFromURL(sourcePack, sourceId);
+			for (Module existing : entry.getModules().values()) {
+				definition.addModule(existing);
+			}
 		}
 		entry.setName(serverNameSpec.value(options));
 		entry.setServerId(serverIdSpec.value(options));
