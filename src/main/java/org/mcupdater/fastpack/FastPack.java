@@ -124,7 +124,7 @@ public class FastPack {
 			}
 		}
 		if (hasForge) {
-			definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<GenericModule>(), ""));
+			definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<Submodule>(), ""));
 		}
         List<Module> sortedModules = definition.sortMods();
 		if (doConfigs) definition.assignConfigs(debug);
