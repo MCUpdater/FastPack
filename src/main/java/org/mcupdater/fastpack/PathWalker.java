@@ -207,7 +207,7 @@ public class PathWalker extends SimpleFileVisitor<Path> {
 			}
 			List<PrioritizedURL> urls = new ArrayList<>();
 			urls.add(new PrioritizedURL(downloadURL,0));
-			Module newMod = new Module(name,id,urls,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<Submodule>(),"");
+			Module newMod = new Module(name,id,urls,null,depends,required,modType,order,false,false,true,md5,new ArrayList<ConfigFile>(),side.name(),null,mapMeta,"","",new ArrayList<Submodule>(),"");
 			if (modType.equals(ModType.Extract)) {
 				newMod.setInRoot(true);
 			}
