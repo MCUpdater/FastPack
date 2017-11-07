@@ -5,27 +5,24 @@ import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.mcupdater.model.*;
+import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
 import org.mcupdater.util.ServerDefinition;
-import org.mcupdater.util.ServerPackParser;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.SimpleFormatter;
 
-public class FastPack {
-	public static boolean hasForge = false;
-	private static boolean debug = false;
-	private static boolean doConfigs = true;
-	private static boolean onlyOverrides = false;
-
+public class Main {
 	public static void main(final String[] args) {
+		boolean hasForge = false;
+		boolean debug = false;
+		boolean doConfigs = true;
+		boolean onlyOverrides = false;
+
 		OptionParser optParser = new OptionParser();
 		optParser.accepts("help", "Shows this help").isForHelp();
 		optParser.formatHelpWith(new BuiltinHelpFormatter(200, 3));
@@ -78,53 +75,28 @@ public class FastPack {
 		if (options.has("configsOnly")) {
 			onlyOverrides = true;
 		}
-
-		ServerDefinition definition = new ServerDefinition();
-		ServerList entry;
 		String sourcePack = sourcePackURLSpec.value(options);
-		if (sourcePack.isEmpty()) {
-			entry = new ServerList();
-		} else {
-			String sourceId = sourcePackIdSpec.value(options);
-			System.out.println(sourcePack + ": " + sourceId);
-			entry = ServerPackParser.loadFromURL(sourcePack, sourceId);
-			for (Module existing : entry.getModules().values()) {
-				definition.addModule(existing);
-			}
-		}
-		entry.setName(serverNameSpec.value(options));
-		entry.setServerId(serverIdSpec.value(options));
-		entry.setAddress(serverAddrSpec.value(options));
-		entry.setMainClass(mainClassSpec.value(options));
-		entry.setNewsUrl(newsURLSpec.value(options));
-		entry.setIconUrl(iconURLSpec.value(options));
-		entry.setRevision(revisionSpec.value(options));
-		entry.setAutoConnect(autoConnectSpec.value(options));
-		entry.setVersion(MCVersionSpec.value(options));
-		definition.setServerEntry(entry);
-		if (hasForge) {
-			definition.addImport(new Import("http://files.mcupdater.com/example/forge.php?mc=" + MCVersionSpec.value(options) + "&forge=" + forgeVersionSpec.value(options), "forge"));
-		}
+		String sourceId = sourcePackIdSpec.value(options);
+		String serverName = serverNameSpec.value(options);
+		String serverId = serverIdSpec.value(options);
+		String serverAddr = serverAddrSpec.value(options);
+		String mainClass = mainClassSpec.value(options);
+		String newsURL = newsURLSpec.value(options);
+		String iconURL = iconURLSpec.value(options);
+		String revision = revisionSpec.value(options);
+		Boolean autoConnect = autoConnectSpec.value(options);
+		String MCVersion = MCVersionSpec.value(options);
+		String forgeVersion = forgeVersionSpec.value(options);
 		String stylesheet = stylesheetSpec.value(options);
-
 		Path searchPath = new File(searchPathSpec.value(options)).toPath();
 		Path xmlPath = new File(xmlPathSpec.value(options)).toPath();
+		String baseURL = baseURLSpec.value(options);
 
-		PathWalker pathWalk = new PathWalker(definition, searchPath, baseURLSpec.value(options));
-		try {
-			Files.walkFileTree(searchPath, pathWalk);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		if (debug) {
-			for (Module modEntry : definition.getModules().values()) {
-				System.out.println(modEntry.toString());
-			}
-		}
+		ServerDefinition definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);
 		if (hasForge) {
-			definition.addModule(new Module("Minecraft Forge", "forge-" + forgeVersionSpec.value(options), new ArrayList<PrioritizedURL>(), null, "", true, ModType.Override, 0, false, false, true, "", new ArrayList<ConfigFile>(), "BOTH", "", new HashMap<String, String>(), "", "", new ArrayList<Submodule>(), ""));
+			definition.addForge(MCVersion, forgeVersion);
 		}
-        List<Module> sortedModules = definition.sortMods();
+		List<Module> sortedModules = definition.sortMods();
 		if (doConfigs) definition.assignConfigs(debug);
 
 		definition.writeServerPack(stylesheet, xmlPath, sortedModules, onlyOverrides);
