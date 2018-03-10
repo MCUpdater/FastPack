@@ -12,7 +12,9 @@ import org.mcupdater.util.ServerDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.SimpleFormatter;
 
@@ -97,7 +99,8 @@ public class Main {
 			definition.addForge(MCVersion, forgeVersion);
 		}
 		List<Module> sortedModules = definition.sortMods();
-		if (doConfigs) definition.assignConfigs(debug);
+		Map<String,String> issues = new HashMap<>();
+		if (doConfigs) definition.assignConfigs(issues, debug);
 
 		definition.writeServerPack(stylesheet, xmlPath, sortedModules, onlyOverrides);
 	}
