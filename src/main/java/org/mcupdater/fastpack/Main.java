@@ -7,10 +7,12 @@ import joptsimple.OptionSet;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
+import org.mcupdater.util.PathWalker;
 import org.mcupdater.util.ServerDefinition;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -28,11 +30,12 @@ public class Main {
 		OptionParser optParser = new OptionParser();
 		optParser.accepts("help", "Shows this help").isForHelp();
 		optParser.formatHelpWith(new BuiltinHelpFormatter(200, 3));
-		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path", "Path to scan for mods and configs").requiredUnless("help").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc", "Minecraft version").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> fileSpec = optParser.accepts("file", "Parse a single mod file and exit").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path", "Path to scan for mods and configs").requiredUnless("help","file").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help","file").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc", "Minecraft version").requiredUnless("help","file").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge", "Forge version").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out", "XML file to write").requiredUnless("help").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out", "XML file to write").requiredUnless("help","file").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver", "Server address").withRequiredArg().ofType(String.class).defaultsTo("");
 		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name", "Server name").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
 		ArgumentAcceptingOptionSpec<String> serverIdSpec = optParser.accepts("id", "Server ID").withRequiredArg().ofType(String.class).defaultsTo("fastpack");
@@ -47,7 +50,19 @@ public class Main {
 		optParser.accepts("noConfigs", "Do not generate ConfigFile entries");
 		optParser.accepts("configsOnly", "Generate all mods as overrides with ConfigFile entries");
 		optParser.accepts("debug", "Output full config matching data");
-		final OptionSet options = optParser.parse(args);
+		
+		final OptionSet options;
+		try {
+			options = optParser.parse(args);
+		} catch( Exception ex ) {
+			System.err.println( ex.getMessage() );
+			return;
+		}
+		
+		if( options.has("file")) {
+			parseOneFile(fileSpec.toString());
+			return;
+		}
 
 		if (options.has("help")) {
 			try {
@@ -57,10 +72,11 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
+		
 		MCUpdater.getInstance();
 		ConsoleHandler handler = new ConsoleHandler();
 		handler.setFormatter(new SimpleFormatter());
-		MCUpdater.apiLogger.addHandler(handler);
+		MCUpdater.apiLogger.addHandler(handler);		
 
 		if (options.has("forge")) {
 			hasForge = true;
@@ -103,6 +119,31 @@ public class Main {
 		if (doConfigs) definition.assignConfigs(issues, debug);
 
 		definition.writeServerPack(stylesheet, xmlPath, sortedModules, onlyOverrides);
+	}
+
+	private static void parseOneFile(String fname) {
+		File f = new File(fname);
+		if ( f.exists() && f.isFile() ) {
+			System.out.println("> "+fname);
+		} else {
+			System.out.println("!! Unable to find '"+fname+"'");
+			return;
+		}
+
+		final Path searchPath = f.getParentFile().toPath();
+		final ServerDefinition definition = new ServerDefinition();
+		final PathWalker walker = new PathWalker(definition,searchPath,"[PATH]/");
+		
+		try {
+			walker.visitFile(f.toPath(), null);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		for (Module modEntry : definition.getModules().values()) {
+			System.out.println(modEntry.toString());
+		}
 	}
 
 }
