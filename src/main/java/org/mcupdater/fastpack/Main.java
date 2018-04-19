@@ -4,16 +4,21 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+
+import org.apache.commons.compress.utils.Lists;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
 import org.mcupdater.util.PathWalker;
 import org.mcupdater.util.ServerDefinition;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +65,7 @@ public class Main {
 		}
 		
 		if( options.has("file")) {
-			parseOneFile(fileSpec.toString());
+			parseOneFile(fileSpec.value(options));
 			return;
 		}
 
@@ -123,16 +128,14 @@ public class Main {
 
 	private static void parseOneFile(String fname) {
 		File f = new File(fname);
-		if ( f.exists() && f.isFile() ) {
-			System.out.println("> "+fname);
-		} else {
+		if ( f == null || !f.exists() || !f.isFile() ) {
 			System.out.println("!! Unable to find '"+fname+"'");
 			return;
 		}
 
 		final Path searchPath = f.getParentFile().toPath();
 		final ServerDefinition definition = new ServerDefinition();
-		final PathWalker walker = new PathWalker(definition,searchPath,"[PATH]/");
+		final PathWalker walker = new PathWalker(definition,searchPath,"[PATH]");
 		
 		try {
 			walker.visitFile(f.toPath(), null);
@@ -141,8 +144,12 @@ public class Main {
 			return;
 		}
 		
-		for (Module modEntry : definition.getModules().values()) {
-			System.out.println(modEntry.toString());
+		final BufferedWriter stdout = new BufferedWriter(new OutputStreamWriter(System.out));
+		try {
+			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<Import>(), definition.sortMods(), false);
+			stdout.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
