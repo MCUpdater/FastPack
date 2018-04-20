@@ -133,7 +133,13 @@ public class Main {
 			return;
 		}
 
-		final Path searchPath = f.getParentFile().toPath();
+		final Path searchPath;
+		if( f.getParent() == null ) {
+			searchPath = new File(".").toPath();
+		} else {
+			searchPath = f.getParentFile().toPath();	
+		}
+		
 		final ServerDefinition definition = new ServerDefinition();
 		final PathWalker walker = new PathWalker(definition,searchPath,"[PATH]");
 		
@@ -146,6 +152,7 @@ public class Main {
 		
 		final BufferedWriter stdout = new BufferedWriter(new OutputStreamWriter(System.out));
 		try {
+			stdout.newLine();
 			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<Import>(), definition.sortMods(), false);
 			stdout.flush();
 		} catch (IOException e) {
