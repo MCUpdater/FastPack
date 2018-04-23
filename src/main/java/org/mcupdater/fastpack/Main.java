@@ -31,14 +31,15 @@ public class Main {
 		boolean debug = false;
 		boolean doConfigs = true;
 		boolean onlyOverrides = false;
-
+		
 		OptionParser optParser = new OptionParser();
 		optParser.accepts("help", "Shows this help").isForHelp();
 		optParser.formatHelpWith(new BuiltinHelpFormatter(200, 3));
 		ArgumentAcceptingOptionSpec<String> fileSpec = optParser.accepts("file", "Parse a single mod file and exit").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path", "Path to scan for mods and configs").requiredUnless("help","file").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help","file").withRequiredArg().ofType(String.class);
-		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc", "Minecraft version").requiredUnless("help","file").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> importURLSpec = optParser.accepts("import", "Generate a pack from a supported 3rd party source (Curse)").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path", "Path to scan for mods and configs").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc", "Minecraft version").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge", "Forge version").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out", "XML file to write").requiredUnless("help","file").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver", "Server address").withRequiredArg().ofType(String.class).defaultsTo("");
@@ -98,27 +99,37 @@ public class Main {
 		if (options.has("configsOnly")) {
 			onlyOverrides = true;
 		}
-		String sourcePack = sourcePackURLSpec.value(options);
-		String sourceId = sourcePackIdSpec.value(options);
 		String serverName = serverNameSpec.value(options);
 		String serverId = serverIdSpec.value(options);
 		String serverAddr = serverAddrSpec.value(options);
 		String mainClass = mainClassSpec.value(options);
 		String newsURL = newsURLSpec.value(options);
 		String iconURL = iconURLSpec.value(options);
-		String revision = revisionSpec.value(options);
 		Boolean autoConnect = autoConnectSpec.value(options);
-		String MCVersion = MCVersionSpec.value(options);
-		String forgeVersion = forgeVersionSpec.value(options);
 		String stylesheet = stylesheetSpec.value(options);
-		Path searchPath = new File(searchPathSpec.value(options)).toPath();
-		Path xmlPath = new File(xmlPathSpec.value(options)).toPath();
-		String baseURL = baseURLSpec.value(options);
 
-		ServerDefinition definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);
-		if (hasForge) {
-			definition.addForge(MCVersion, forgeVersion);
+		String importURL = importURLSpec.value(options);
+		Path xmlPath = new File(xmlPathSpec.value(options)).toPath();
+
+		ServerDefinition definition;
+		if( importURL.isEmpty() ) {
+			Path searchPath = new File(searchPathSpec.value(options)).toPath();
+			
+			String sourcePack = sourcePackURLSpec.value(options);
+			String sourceId = sourcePackIdSpec.value(options);
+			String revision = revisionSpec.value(options);
+			String baseURL = baseURLSpec.value(options);
+			String MCVersion = MCVersionSpec.value(options);
+			String forgeVersion = forgeVersionSpec.value(options);
+
+			definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);		
+			if (hasForge) {
+				definition.addForge(MCVersion, forgeVersion);
+			}
+		} else {
+			definition = FastPack.doImport(importURL, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, autoConnect, debug);
 		}
+	
 		List<Module> sortedModules = definition.sortMods();
 		Map<String,String> issues = new HashMap<>();
 		if (doConfigs) definition.assignConfigs(issues, debug);
