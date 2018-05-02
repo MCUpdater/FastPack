@@ -6,6 +6,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.io.FileUtils;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
@@ -16,14 +17,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.spi.FileTypeDetector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.SimpleFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
 	public static void main(final String[] args) {
@@ -138,33 +144,60 @@ public class Main {
 	}
 
 	private static void parseOneFile(String fname) {
-		File f = new File(fname);
-		if ( f == null || !f.exists() || !f.isFile() ) {
-			System.out.println("!! Unable to find '"+fname+"'");
-			return;
-		}
-
-		final Path searchPath;
-		if( f.getParent() == null ) {
-			searchPath = new File(".").toPath();
-		} else {
-			searchPath = f.getParentFile().toPath();	
-		}
-		
 		final ServerDefinition definition = new ServerDefinition();
-		final PathWalker walker = new PathWalker(definition,searchPath,"[PATH]");
+		final List<Module> modList;
 		
-		try {
-			walker.visitFile(f.toPath(), null);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
+		final File f = new File(fname);
+		if( f.exists() && f.isFile() ) {
+			PathWalker.handleOneFile(definition, f, null);
+			modList = definition.sortMods();
+		} else {
+			// detect curse file url
+			final Pattern regex = Pattern.compile("curseforge.com\\/projects\\/(?<project>[a-zA-Z_0-9\\-]+)\\/files\\/(?<filenum>\\d+)");
+			final Matcher match = regex.matcher(fname);
+			final boolean curse = match.find();
+			if( curse && !fname.endsWith("download") ) {
+				fname += "/download";
+			}
+			
+			final URL url;
+			try {
+				url = new URL(fname);
+			} catch( MalformedURLException e ) {
+				// we've already verified that it isn't a file on disk, so bad url means:
+				System.out.println("!! Unable to find file '"+fname+"'");
+				return;
+			}
+						
+			final File tmp;
+			final Path path;
+			try {
+				tmp = File.createTempFile("import", ".jar");
+				FileUtils.copyURLToFile(url, tmp);
+				tmp.deleteOnExit();
+				path = tmp.toPath();
+				if( Files.size(path) == 0 ) {
+					System.out.println("!! got zero bytes from "+url);
+					return;
+				}
+			} catch (IOException e) {
+				System.out.println("!! Unable to download "+url);
+				return;
+			}
+			
+			PathWalker.handleOneFile(definition, tmp, fname);
+			modList = definition.sortMods();
+			
+			if( curse ) {
+				Module mod = modList.get(0);
+				mod.setCurseProject(new CurseProject(match.group("project"), Integer.parseInt(match.group("filenum"))));
+			}
 		}
 		
 		final BufferedWriter stdout = new BufferedWriter(new OutputStreamWriter(System.out));
 		try {
 			stdout.newLine();
-			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<Import>(), definition.sortMods(), false);
+			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<Import>(), modList, false);
 			stdout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
