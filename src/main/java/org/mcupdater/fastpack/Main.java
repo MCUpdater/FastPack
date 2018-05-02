@@ -41,7 +41,7 @@ public class Main {
 		OptionParser optParser = new OptionParser();
 		optParser.accepts("help", "Shows this help").isForHelp();
 		optParser.formatHelpWith(new BuiltinHelpFormatter(200, 3));
-		ArgumentAcceptingOptionSpec<String> fileSpec = optParser.accepts("file", "Parse a single mod file and exit").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> fileSpec = optParser.accepts("file", "Parse a single mod file (or download url) and exit").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> importURLSpec = optParser.accepts("import", "Generate a pack from a supported 3rd party source (Curse)").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> searchPathSpec = optParser.accepts("path", "Path to scan for mods and configs").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
