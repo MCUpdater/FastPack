@@ -118,7 +118,7 @@ public class Main {
 		Path xmlPath = new File(xmlPathSpec.value(options)).toPath();
 
 		ServerDefinition definition;
-		if( importURL.isEmpty() ) {
+		if( importURL == null || importURL.isEmpty() ) {
 			Path searchPath = new File(searchPathSpec.value(options)).toPath();
 			
 			String sourcePack = sourcePackURLSpec.value(options);
