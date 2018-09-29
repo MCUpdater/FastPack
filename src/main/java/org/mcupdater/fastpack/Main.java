@@ -149,7 +149,7 @@ public class Main {
 		
 		final File f = new File(fname);
 		if( f.exists() && f.isFile() ) {
-			PathWalker.handleOneFile(definition, f, null);
+			definition.addModule((Module) PathWalker.handleOneFile(definition, f, null));
 			modList = definition.sortMods();
 		} else {
 			// detect curse file url
@@ -185,7 +185,7 @@ public class Main {
 				return;
 			}
 			
-			PathWalker.handleOneFile(definition, tmp, fname);
+			definition.addModule((Module) PathWalker.handleOneFile(definition, tmp, fname));
 			modList = definition.sortMods();
 			
 			if( curse ) {
