@@ -5,7 +5,6 @@ import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
@@ -21,7 +20,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileTypeDetector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +32,7 @@ import java.util.regex.Pattern;
 public class Main {
 	public static void main(final String[] args) {
 		boolean hasForge = false;
+		boolean hasFabric = false;
 		boolean debug = false;
 		boolean doConfigs = true;
 		boolean onlyOverrides = false;
@@ -47,6 +46,8 @@ public class Main {
 		ArgumentAcceptingOptionSpec<String> baseURLSpec = optParser.accepts("baseURL", "Base URL for downloads").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> MCVersionSpec = optParser.accepts("mc", "Minecraft version").requiredUnless("help","file","import").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> forgeVersionSpec = optParser.accepts("forge", "Forge version").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> fabricVersionSpec = optParser.accepts("fabric","Fabric version").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> yarnVersionSpec = optParser.accepts("yarn", "Yarn version").withOptionalArg().ofType(String.class).defaultsTo("latest");
 		ArgumentAcceptingOptionSpec<String> xmlPathSpec = optParser.accepts("out", "XML file to write").requiredUnless("help","file").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> serverAddrSpec = optParser.accepts("mcserver", "Server address").withRequiredArg().ofType(String.class).defaultsTo("");
 		ArgumentAcceptingOptionSpec<String> serverNameSpec = optParser.accepts("name", "Server name").withRequiredArg().ofType(String.class).defaultsTo("FastPack Instance");
@@ -90,21 +91,14 @@ public class Main {
 		handler.setFormatter(new SimpleFormatter());
 		MCUpdater.apiLogger.addHandler(handler);		
 
-		if (options.has("forge")) {
-			hasForge = true;
-		}
+		hasForge = options.has("forge");
+		hasFabric = options.has("fabric");
 
-		if (options.has("debug")) {
-			debug = true;
-		}
+		debug = options.has("debug");
 
-		if (options.has("noConfigs")) {
-			doConfigs = false;
-		}
+		doConfigs = !options.has("noConfigs");
+		onlyOverrides = options.has("configsOnly");
 
-		if (options.has("configsOnly")) {
-			onlyOverrides = true;
-		}
 		String serverName = serverNameSpec.value(options);
 		String serverId = serverIdSpec.value(options);
 		String serverAddr = serverAddrSpec.value(options);
@@ -121,16 +115,22 @@ public class Main {
 		if( importURL == null || importURL.isEmpty() ) {
 			Path searchPath = new File(searchPathSpec.value(options)).toPath();
 			
-			String sourcePack = sourcePackURLSpec.value(options);
-			String sourceId = sourcePackIdSpec.value(options);
-			String revision = revisionSpec.value(options);
-			String baseURL = baseURLSpec.value(options);
-			String MCVersion = MCVersionSpec.value(options);
-			String forgeVersion = forgeVersionSpec.value(options);
+			final String sourcePack = sourcePackURLSpec.value(options);
+			final String sourceId = sourcePackIdSpec.value(options);
+			final String revision = revisionSpec.value(options);
+			final String baseURL = baseURLSpec.value(options);
+			final String MCVersion = MCVersionSpec.value(options);
 
-			definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);		
+			definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);
+
 			if (hasForge) {
+				final String forgeVersion = forgeVersionSpec.value(options);
 				definition.addForge(MCVersion, forgeVersion);
+			}
+			if (hasFabric) {
+				final String fabricVersion = fabricVersionSpec.value(options);
+				final String yarnVersion = yarnVersionSpec.value(options);
+				definition.addFabric(MCVersion, fabricVersion, yarnVersion);
 			}
 		} else {
 			definition = FastPack.doImport(importURL, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, autoConnect, debug);
@@ -203,5 +203,4 @@ public class Main {
 			e.printStackTrace();
 		}
 	}
-
 }
