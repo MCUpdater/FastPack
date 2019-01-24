@@ -5,7 +5,6 @@ import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-import org.apache.commons.io.FileUtils;
 import org.mcupdater.downloadlib.DownloadUtil;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
@@ -37,6 +36,7 @@ public class Main {
 		boolean debug = false;
 		boolean doConfigs = true;
 		boolean onlyOverrides = false;
+		boolean includeOptional = false;
 		
 		OptionParser optParser = new OptionParser();
 		optParser.accepts("help", "Shows this help").forHelp();
@@ -63,6 +63,7 @@ public class Main {
 		ArgumentAcceptingOptionSpec<String> sourcePackIdSpec = optParser.accepts("sourcePackId", "Server ID of source pack").requiredIf("sourcePackURL").withRequiredArg().ofType(String.class);
 		optParser.accepts("noConfigs", "Do not generate ConfigFile entries");
 		optParser.accepts("configsOnly", "Generate all mods as overrides with ConfigFile entries");
+		optParser.accepts("includeOptional", "Add an import statement to include the MCUpdater community optional mods pack");
 		optParser.accepts("debug", "Output full config matching data");
 		
 		final OptionSet options;
@@ -99,6 +100,7 @@ public class Main {
 
 		doConfigs = !options.has("noConfigs");
 		onlyOverrides = options.has("configsOnly");
+		includeOptional = options.has("includeOptional");
 
 		String serverName = serverNameSpec.value(options);
 		String serverId = serverIdSpec.value(options);
@@ -132,6 +134,9 @@ public class Main {
 				final String fabricVersion = fabricVersionSpec.value(options);
 				final String yarnVersion = yarnVersionSpec.value(options);
 				definition.addFabric(MCVersion, fabricVersion, yarnVersion);
+			}
+			if (includeOptional) {
+				definition.addImport(new Import("https://files.mcupdater.com/optional/ServerPack.xml", "optional"));
 			}
 		} else {
 			definition = FastPack.doImport(importURL, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, autoConnect, debug);
