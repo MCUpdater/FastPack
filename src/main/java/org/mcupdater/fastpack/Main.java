@@ -6,6 +6,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.apache.commons.io.FileUtils;
+import org.mcupdater.downloadlib.DownloadUtil;
 import org.mcupdater.model.*;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
@@ -172,9 +173,7 @@ public class Main {
 			final File tmp;
 			final Path path;
 			try {
-				tmp = File.createTempFile("import", ".jar");
-				FileUtils.copyURLToFile(url, tmp);
-				tmp.deleteOnExit();
+				tmp = DownloadUtil.getToTemp(url, "import", ".jar");
 				path = tmp.toPath();
 				if( Files.size(path) == 0 ) {
 					System.out.println("!! got zero bytes from "+url);
