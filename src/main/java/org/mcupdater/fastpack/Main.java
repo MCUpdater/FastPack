@@ -39,7 +39,7 @@ public class Main {
 		boolean onlyOverrides = false;
 		
 		OptionParser optParser = new OptionParser();
-		optParser.accepts("help", "Shows this help").isForHelp();
+		optParser.accepts("help", "Shows this help").forHelp();
 		optParser.formatHelpWith(new BuiltinHelpFormatter(200, 3));
 		ArgumentAcceptingOptionSpec<String> fileSpec = optParser.accepts("file", "Parse a single mod file (or download url) and exit").withRequiredArg().ofType(String.class);
 		ArgumentAcceptingOptionSpec<String> importURLSpec = optParser.accepts("import", "Generate a pack from a supported 3rd party source (Curse)").withRequiredArg().ofType(String.class);
