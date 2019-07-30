@@ -201,7 +201,7 @@ public class Main {
 		final BufferedWriter stdout = new BufferedWriter(new OutputStreamWriter(System.out));
 		try {
 			stdout.newLine();
-			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<Import>(), modList, false);
+			ServerDefinition.generateServerDetailXML(stdout, new ArrayList<>(), new ArrayList<>(), modList, false);
 			stdout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
