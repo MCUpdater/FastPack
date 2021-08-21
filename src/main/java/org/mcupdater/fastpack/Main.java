@@ -1,13 +1,13 @@
 package org.mcupdater.fastpack;
 
-import com.google.gson.Gson;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-
 import org.mcupdater.downloadlib.DownloadUtil;
-import org.mcupdater.model.*;
+import org.mcupdater.model.CurseProject;
+import org.mcupdater.model.Import;
+import org.mcupdater.model.Module;
 import org.mcupdater.model.metadata.ProjectData;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
@@ -150,7 +150,7 @@ public class Main {
 		} else {
 			definition = FastPack.doImport(importURL, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, autoConnect, debug);
 		}
-	
+
 		List<Module> sortedModules = definition.sortMods();
 		Map<String,String> issues = new HashMap<>();
 		if (doConfigs) definition.assignConfigs(issues, debug);
@@ -183,7 +183,7 @@ public class Main {
 				System.out.println("!! Unable to find file '"+fname+"'");
 				return;
 			}
-						
+
 			final File tmp;
 			final Path path;
 			try {
