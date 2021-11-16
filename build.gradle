@@ -1,0 +1,20 @@
+plugins {
+    id 'workspace.java-application-conventions'
+}
+
+version = fastpackVersion
+
+dependencies {
+    implementation project(':MCU-API')
+    implementation project(":MCU-DownloadLib")
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    manifest {
+        attributes "Main-Class": 'org.mcupdater.fastpack.Main'
+    }
+}
+
+jar.setDependsOn([':MCU-API:jar',':MCU-DownloadLib:jar'])

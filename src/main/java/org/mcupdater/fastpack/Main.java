@@ -4,9 +4,11 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-
 import org.mcupdater.downloadlib.DownloadUtil;
-import org.mcupdater.model.*;
+import org.mcupdater.model.CurseProject;
+import org.mcupdater.model.Import;
+import org.mcupdater.model.Module;
+import org.mcupdater.model.metadata.ProjectData;
 import org.mcupdater.util.FastPack;
 import org.mcupdater.util.MCUpdater;
 import org.mcupdater.util.PathWalker;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -61,6 +64,7 @@ public class Main {
 		ArgumentAcceptingOptionSpec<String> stylesheetSpec = optParser.accepts("xslt", "Path of XSLT file").withRequiredArg().ofType(String.class).defaultsTo("");
 		ArgumentAcceptingOptionSpec<String> sourcePackURLSpec = optParser.accepts("sourcePackURL", "URL of pack to load - useful with configsOnly").withRequiredArg().ofType(String.class).defaultsTo("");
 		ArgumentAcceptingOptionSpec<String> sourcePackIdSpec = optParser.accepts("sourcePackId", "Server ID of source pack").requiredIf("sourcePackURL").withRequiredArg().ofType(String.class);
+		ArgumentAcceptingOptionSpec<String> lookupFileSpec = optParser.accepts("lookupFile", "").withRequiredArg().ofType(String.class);
 		optParser.accepts("noConfigs", "Do not generate ConfigFile entries");
 		optParser.accepts("configsOnly", "Generate all mods as overrides with ConfigFile entries");
 		optParser.accepts("includeOptional", "Add an import statement to include the MCUpdater community optional mods pack");
@@ -116,6 +120,7 @@ public class Main {
 
 		ServerDefinition definition;
 		if( importURL == null || importURL.isEmpty() ) {
+			List<ProjectData> projects = null;
 			Path searchPath = new File(searchPathSpec.value(options)).toPath();
 			
 			final String sourcePack = sourcePackURLSpec.value(options);
@@ -124,7 +129,11 @@ public class Main {
 			final String baseURL = baseURLSpec.value(options);
 			final String MCVersion = MCVersionSpec.value(options);
 
-			definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug);
+			if (options.has("lookupFile")) {
+				projects = MCUpdater.loadProjectData(FileSystems.getDefault().getPath(lookupFileSpec.value(options)));
+			}
+
+			definition = FastPack.doFastPack(sourcePack, sourceId, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, revision, autoConnect, MCVersion, searchPath, baseURL, debug, projects);
 
 			if (hasForge) {
 				final String forgeVersion = forgeVersionSpec.value(options);
@@ -141,7 +150,7 @@ public class Main {
 		} else {
 			definition = FastPack.doImport(importURL, serverName, serverId, serverAddr, mainClass, newsURL, iconURL, autoConnect, debug);
 		}
-	
+
 		List<Module> sortedModules = definition.sortMods();
 		Map<String,String> issues = new HashMap<>();
 		if (doConfigs) definition.assignConfigs(issues, debug);
@@ -174,7 +183,7 @@ public class Main {
 				System.out.println("!! Unable to find file '"+fname+"'");
 				return;
 			}
-						
+
 			final File tmp;
 			final Path path;
 			try {
