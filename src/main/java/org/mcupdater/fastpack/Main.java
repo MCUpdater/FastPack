@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,7 +70,13 @@ public class Main {
 		optParser.accepts("configsOnly", "Generate all mods as overrides with ConfigFile entries");
 		optParser.accepts("includeOptional", "Add an import statement to include the MCUpdater community optional mods pack");
 		optParser.accepts("debug", "Output full config matching data");
-		
+
+		MCUpdater.getInstance();
+		ConsoleHandler handler = new ConsoleHandler();
+		handler.setLevel(Level.ALL);
+		handler.setFormatter(new SimpleFormatter());
+		MCUpdater.apiLogger.addHandler(handler);
+
 		final OptionSet options;
 		try {
 			options = optParser.parse(args);
@@ -92,10 +99,7 @@ public class Main {
 			}
 		}
 		
-		MCUpdater.getInstance();
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(new SimpleFormatter());
-		MCUpdater.apiLogger.addHandler(handler);		
+
 
 		hasForge = options.has("forge");
 		hasFabric = options.has("fabric");
